@@ -3,7 +3,7 @@ class ReminderType(
     val aliases: List<String>,
     val cooldownMS: Long,
     val patreonAffected: Boolean,
-    val responseName: ReminderType.(String) -> String = { this.name },
+    val responseName: ReminderType.(List<String>) -> String = { this.name },
     val validator: (List<String>) -> Boolean = { true }
 ) {
 }

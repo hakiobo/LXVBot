@@ -12,17 +12,24 @@ import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
 import java.time.Instant
 import java.util.regex.Pattern
+import kotlin.math.max
 import kotlin.math.roundToLong
 
 
-class LXVBot(private val client: Kord, private val db: MongoDatabase) {
+class LXVBot(private val client: Kord, val db: MongoDatabase) {
 
     private val lootboxTypes = listOf("c", "common", "u", "uncommon", "r", "rare", "ep", "epic", "ed", "edgy")
     private val lootboxAliases = listOf("lb", "lootbox")
 
 
     private val reminders = listOf(
-        ReminderType("hunt", listOf(), 60_000, true),
+        ReminderType("hunt", listOf(), 60_000, true, { args ->
+            if (args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
+                "hunt together"
+            } else {
+                name
+            }
+        }),
         ReminderType("daily", listOf(), 24 * 3600_000, true),
         ReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
@@ -58,7 +65,7 @@ class LXVBot(private val client: Kord, private val db: MongoDatabase) {
             ),
             300_000,
             true,
-            { it }
+            { it.first() }
         ),
         ReminderType("horse", listOf(), 24 * 3600_000, true, { "Horse Breeding/Race" }) { args ->
             if (args.size < 2) {
@@ -125,8 +132,8 @@ class LXVBot(private val client: Kord, private val db: MongoDatabase) {
         if (mCE.message.content.startsWith("rpg ", true)) {
             handleRPGCommand(mCE)
         }
-        if (mCE.message.content.startsWith("l!", true)) {
-            handleCommand(mCE, mCE.message.content.drop(2).trim())
+        if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
+            handleCommand(mCE, mCE.message.content.drop(BOT_PREFIX.length).trim())
         }
     }
 
@@ -203,7 +210,7 @@ class LXVBot(private val client: Kord, private val db: MongoDatabase) {
                                 }
                             }
                         }
-                        "patreon" -> {
+                        "patreon", "p" -> {
                             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                             val user = getUserFromDb(mCE.message.author!!.id, userCol)
                             if (args.size == 2) {
@@ -230,6 +237,33 @@ class LXVBot(private val client: Kord, private val db: MongoDatabase) {
                                 }
                             }
                         }
+                        "ppatreon", "partner", "pp" -> {
+                            val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+                            val user = getUserFromDb(mCE.message.author!!.id, userCol)
+                            if (args.size == 2) {
+                                mCE.message.reply {
+                                    content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
+                                    allowedMentions {
+                                        repliedUser = false
+                                    }
+                                }
+                            } else {
+                                val new = when (args[2]) {
+                                    "donator", "basic", "10%", "10", "0.9" -> 0.9 to "Regular. 10% reduced cooldowns"
+                                    "epic", "20%", "20", "0.8" -> 0.8 to "Epic. 20% reduced cooldowns"
+                                    "super", "35%", "35", "0.65" -> 0.65 to "Super. 35% reduced cooldowns"
+                                    else -> 1.0 to "None. Regular cooldowns"
+                                }
+                                val newUser = user.copy(rpg = user.rpg.copy(partnerPatreon = new.first))
+                                userCol.replaceOne(LXVUser::_id eq user._id, newUser)
+                                mCE.message.reply {
+                                    content = "RPG Partner Patreon Set to ${new.second}"
+                                    allowedMentions {
+                                        repliedUser = false
+                                    }
+                                }
+                            }
+                        }
                         else -> {
                             err("Not a valid rpg subcommand")
                         }
@@ -250,15 +284,21 @@ class LXVBot(private val client: Kord, private val db: MongoDatabase) {
             val user = getUserFromDb(mCE.message.author!!.id, userCol)
             val data = user.rpg.rpgReminders[reminder.name]
             val curTime = mCE.message.id.toInstant().toEpochMilli()
-            if (data?.enabled == true && (curTime - data.lastUse > reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0)
+            val dif =
+                if (reminder.name == "hunt" && args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
+                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
+                } else {
+                    reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
+                }
+            if (data?.enabled == true && (curTime - data.lastUse > dif)
             ) {
                 client.launch {
                     user.rpg.rpgReminders[reminder.name] = Reminder(data.enabled, curTime, data.count + 1)
                     userCol.replaceOne(LXVUser::_id eq user._id, user)
-                    delay((reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0).roundToLong())
+                    delay(dif.roundToLong())
                     mCE.message.reply {
                         content = "rpg ${
-                            reminder.responseName(reminder, args.first())
+                            reminder.responseName(reminder, args)
                         } cooldown is done"
                     }
                 }
@@ -292,6 +332,10 @@ class LXVBot(private val client: Kord, private val db: MongoDatabase) {
         } else {
             null
         }
+    }
+
+    companion object {
+        const val BOT_PREFIX = "+"
     }
 
 }
