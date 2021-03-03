@@ -37,7 +37,7 @@ class LXVBot(private val client: Kord, val db: CoroutineDatabase) {
 
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
         if (mCE.message.author?.isBot == true) return
-        if (mCE.message.content.startsWith("rpg ", true)) {
+        if (mCE.message.content.startsWith("$RPG_PREFIX ", true)) {
             handleRPGCommand(mCE)
         }
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
@@ -130,6 +130,7 @@ class LXVBot(private val client: Kord, val db: CoroutineDatabase) {
     companion object {
         const val BOT_NAME = "LXV Bot"
         const val BOT_PREFIX = "+"
+        const val RPG_PREFIX = "rpg"
 
 
         fun getUserIdFromString(s: String?): Long? {
