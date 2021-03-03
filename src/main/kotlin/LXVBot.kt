@@ -1,9 +1,12 @@
 import commands.Github
 import commands.RPGCommand
+import commands.meta.HelpCommand
 import commands.utils.BotCommand
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.MessageBehavior
+import dev.kord.core.behavior.channel.MessageChannelBehavior
+import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
@@ -19,11 +22,12 @@ import kotlin.math.max
 import kotlin.math.roundToLong
 
 
-class LXVBot(private val client: Kord, val db: CoroutineDatabase) {
+class LXVBot(val client: Kord, val db: CoroutineDatabase) {
 
-    private val commands = listOf(
+    val commands = listOf(
         RPGCommand,
         Github,
+        HelpCommand
     )
 
     suspend fun startup() {
@@ -48,24 +52,11 @@ class LXVBot(private val client: Kord, val db: CoroutineDatabase) {
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
         val args = msg.split(Pattern.compile("\\s+")).map { it.toLowerCase() }
         val cmd = args.first().toLowerCase()
-        val toRun = run {
-            var toRun: BotCommand? = null
-            for (command in commands) {
-                if (cmd == command.name || cmd in command.aliases) {
-                    toRun = command
-                }
-            }
-            toRun
-        }
-        if (toRun == null) {
-            mCE.message.reply {
-                content = "Invalid Command: I'd say use ${BOT_PREFIX}help but there's no help command yet <:PaulOwO:721154434297757727>"
-                allowedMentions {
-                    repliedUser = false
-                }
-            }
-        } else {
+        val toRun = lookupCMD(cmd)
+        if (toRun != null) {
             toRun.runCMD(this, mCE, args.drop(1))
+        } else {
+            reply(mCE.message, "Invalid Command: use ${BOT_PREFIX}help to see available commands")
         }
     }
 
@@ -99,20 +90,65 @@ class LXVBot(private val client: Kord, val db: CoroutineDatabase) {
         }
     }
 
-    internal suspend inline fun reply(
+    internal suspend fun reply(
         message: MessageBehavior,
         replyContent: String = "",
         ping: Boolean = false,
-        embedBuilder: (EmbedBuilder.() -> Unit) = { },
+        embedBuilder: (EmbedBuilder.() -> Unit)? = null,
     ) {
         message.reply {
             content = replyContent
             allowedMentions {
                 repliedUser = ping
             }
-            embed(embedBuilder)
+            if (embedBuilder != null) {
+                embed(embedBuilder)
+            }
         }
 
+    }
+
+    internal suspend fun sendMessage(
+        channel: MessageChannelBehavior,
+        message: String = "",
+        deleteAfterMS: Long = 0L,
+        mentionsAllowed: Boolean = false,
+        embedToSend: (EmbedBuilder.() -> Unit)? = null,
+    ) {
+        client.launch {
+            if (deleteAfterMS == 0L) {
+                channel.createMessage {
+                    content = message
+                    if (!mentionsAllowed) {
+                        allowedMentions()
+                    }
+                    if (embedToSend != null) {
+                        embed(embedToSend)
+                    }
+                }
+            } else {
+                val msg = channel.createMessage {
+                    content = message
+                    if (!mentionsAllowed) {
+                        allowedMentions()
+                    }
+                    if (embedToSend != null) {
+                        embed(embedToSend)
+                    }
+                }
+                delay(deleteAfterMS)
+                msg.delete()
+            }
+        }
+    }
+
+    internal fun lookupCMD(userCMD: String): BotCommand? {
+        for (cmd in commands) {
+            if (userCMD == cmd.name || userCMD in cmd.aliases) {
+                return cmd
+            }
+        }
+        return null
     }
 
 
