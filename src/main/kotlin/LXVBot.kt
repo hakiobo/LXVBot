@@ -19,9 +19,9 @@ import kotlin.math.max
 import kotlin.math.roundToLong
 
 
-class LXVBot(val client: Kord, val db: CoroutineDatabase) {
+class LXVBot(private val client: Kord, val db: CoroutineDatabase) {
 
-    val commands = listOf(
+    private val commands = listOf(
         RPGCommand,
         Github,
     )
