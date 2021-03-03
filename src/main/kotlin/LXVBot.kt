@@ -49,6 +49,11 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
             handleCommand(mCE, mCE.message.content.drop(BOT_PREFIX.length).trim())
         }
+
+
+        if (mCE.message.mentionedUserIds.contains(client.selfId)) {
+            reply(mCE.message, "Hi, Welcome to LXV!\n$BOT_NAME prefix is $BOT_PREFIX")
+        }
     }
 
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
@@ -96,18 +101,28 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
         message: MessageBehavior,
         replyContent: String = "",
         ping: Boolean = false,
-        embedBuilder: (EmbedBuilder.() -> Unit)? = null,
+        embedBuilder: EmbedBuilder.() -> Unit,
     ) {
         message.reply {
             content = replyContent
             allowedMentions {
                 repliedUser = ping
             }
-            if (embedBuilder != null) {
-                embed(embedBuilder)
+            embed(embedBuilder)
+        }
+    }
+
+    internal suspend fun reply(
+        message: MessageBehavior,
+        replyContent: String = "",
+        ping: Boolean = false,
+    ) {
+        message.reply {
+            content = replyContent
+            allowedMentions {
+                repliedUser = ping
             }
         }
-
     }
 
     internal suspend fun sendMessage(
