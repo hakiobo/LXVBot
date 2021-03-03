@@ -1,4 +1,6 @@
+import commands.Github
 import commands.RPGCommand
+import commands.utils.BotCommand
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.MessageBehavior
@@ -18,6 +20,11 @@ import kotlin.math.roundToLong
 
 
 class LXVBot(val client: Kord, val db: CoroutineDatabase) {
+
+    val commands = listOf(
+        RPGCommand,
+        Github,
+    )
 
     suspend fun startup() {
         client.on<MessageCreateEvent> {
@@ -40,30 +47,25 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
 
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
         val args = msg.split(Pattern.compile("\\s+")).map { it.toLowerCase() }
-        if (args.isEmpty()) {
+        val cmd = args.first().toLowerCase()
+        val toRun = run {
+            var toRun: BotCommand? = null
+            for (command in commands) {
+                if (cmd == command.name || cmd in command.aliases) {
+                    toRun = command
+                }
+            }
+            toRun
+        }
+        if (toRun == null) {
             mCE.message.reply {
-                content = "w h y"
+                content = "Invalid Command: I'd say use ${BOT_PREFIX}help but there's no help command yet <:PaulOwO:721154434297757727>"
                 allowedMentions {
                     repliedUser = false
                 }
             }
         } else {
-            suspend fun err(msg: String = "") {
-                mCE.message.reply {
-                    content = "Invalid Syntax: $msg <:PaulOwO:721154434297757727>"
-                    allowedMentions {
-                        repliedUser = false
-                    }
-                }
-            }
-            when (args.first()) {
-                "rpg" -> {
-                    RPGCommand.runCMD(this, mCE, args.drop(1))
-                }
-                else -> {
-                    err("Only RPG commands supported currently")
-                }
-            }
+            toRun.runCMD(this, mCE, args.drop(1))
         }
     }
 
