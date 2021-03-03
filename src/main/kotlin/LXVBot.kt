@@ -1,4 +1,5 @@
 import commands.Github
+import commands.Ping
 import commands.RPGCommand
 import commands.meta.HelpCommand
 import commands.utils.BotCommand
@@ -27,7 +28,8 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
     val commands = listOf(
         RPGCommand,
         Github,
-        HelpCommand
+        HelpCommand,
+        Ping,
     )
 
     suspend fun startup() {
