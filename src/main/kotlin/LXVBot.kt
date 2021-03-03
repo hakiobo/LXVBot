@@ -57,7 +57,7 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
     }
 
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
-        val args = msg.split(Pattern.compile("\\s+")).map { it.toLowerCase() }
+        val args = msg.split(Pattern.compile("\\s+"))
         val cmd = args.first().toLowerCase()
         val toRun = lookupCMD(cmd)
         if (toRun != null) {

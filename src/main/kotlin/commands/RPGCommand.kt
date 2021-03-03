@@ -43,12 +43,34 @@ object RPGCommand : BotCommand {
                 listOf(Argument(listOf("ppatreon", "partner", "pp")), Argument("patreon level")),
                 "Sets your Partner's Patreon level to the specified value"
             ),
+            CommandUsage(
+                listOf(Argument("info", ArgumentType.EXACT)),
+                "Shows all available reminder types"
+            ),
         )
 
     private val lootboxTypes = listOf("c", "common", "u", "uncommon", "r", "rare", "ep", "epic", "ed", "edgy")
     private val lootboxAliases = listOf("lb", "lootbox")
     private val adventureAliases = listOf("adv", "adventure")
     private val petAdvTypes = listOf("find", "learn", "drill")
+    private val workAliases = listOf(
+        "chop",
+        "axe",
+        "bowsaw",
+        "chainsaw",
+        "fish",
+        "net",
+        "boat",
+        "bigboat",
+        "pickup",
+        "ladder",
+        "tractor",
+        "greenhouse",
+        "mine",
+        "pickaxe",
+        "drill",
+        "dynamite"
+    )
 
     private val reminders = listOf(
         ReminderType("hunt", listOf(), 60_000, true, { args ->
@@ -76,28 +98,14 @@ object RPGCommand : BotCommand {
         },
         ReminderType("duel", listOf(), 2 * 3600_000, false),
         ReminderType(
-            "chop",
-            listOf(
-                "axe",
-                "bowsaw",
-                "chainsaw",
-                "fish",
-                "net",
-                "boat",
-                "bigboat",
-                "pickup",
-                "ladder",
-                "tractor",
-                "greenhouse",
-                "mine",
-                "pickaxe",
-                "drill",
-                "dynamite"
-            ),
+            "work",
+            workAliases,
             300_000,
             true,
             { it.first() }
-        ),
+        ) { args ->
+            args.first().toLowerCase() in workAliases
+        },
         ReminderType("horse", listOf(), 24 * 3600_000, true, { "Horse Breeding/Race" }) { args ->
             if (args.size < 2) {
                 false
@@ -161,7 +169,7 @@ object RPGCommand : BotCommand {
         if (args.isEmpty()) {
             err("Not enough args for any of the commands")
         }
-        when (args[0]) {
+        when (args[0].toLowerCase()) {
             "enable", "disable", "reset" -> {
                 if (args.size < 2) err("Not enough args for ${args[0]}") else {
                     val reminder = findReminder(listOf(args[1]), false)
@@ -265,6 +273,27 @@ object RPGCommand : BotCommand {
                             repliedUser = false
                         }
                     }
+                }
+            }
+            "info" -> {
+                val info = StringBuilder()
+                for (reminder in reminders) {
+                    info.append(
+                        "${reminder.name.capitalize()} - ${
+                            reminder.responseName(
+                                reminder,
+                                listOf(reminder.name)
+                            )
+                        }\n"
+                    )
+                    if (reminder.aliases.isNotEmpty()) {
+                        info.append("Aliases: ${reminder.aliases.joinToString(", ")}\n")
+                    }
+                    info.append("\n")
+                }
+                reply(mCE.message) {
+                    title = "Available RPG Reminder Types"
+                    description = info.toString()
                 }
             }
             else -> {
