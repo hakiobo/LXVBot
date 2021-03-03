@@ -57,9 +57,10 @@ enum class ArgumentType(val prefix: String, val suffix: String) {
 }
 
 enum class CommandCategory(val category: String) {
+    OTHER_BOTS("Other Bot Related"),
     HIDDEN("Hidden"),
     REMINDER("Reminders"),
     GUILD("Guild"),
-    HAKIBOT("Bot Related"),
+    LXVBOT("Bot Related"),
     MISC("Miscellaneous"),
 }

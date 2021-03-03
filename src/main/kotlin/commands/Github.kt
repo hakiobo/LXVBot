@@ -13,7 +13,7 @@ object Github : BotCommand {
     override val aliases: List<String>
         get() = listOf("git", "code")
     override val category: CommandCategory
-        get() = CommandCategory.HAKIBOT
+        get() = CommandCategory.LXVBOT
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         reply(mCE.message, "${LXVBot.BOT_NAME} code is here: https://github.com/hakiobo/LXVBot")

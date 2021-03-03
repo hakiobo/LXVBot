@@ -28,7 +28,7 @@ object HelpCommand : BotCommand {
         )
 
     override val category: CommandCategory
-        get() = CommandCategory.HAKIBOT
+        get() = CommandCategory.LXVBOT
 
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
@@ -38,12 +38,6 @@ object HelpCommand : BotCommand {
                 for (cmd in commands) {
                     map.getOrPut(cmd.category, { mutableListOf() }).add(cmd.name)
                 }
-//                val helpMSG = StringBuilder("Hakibot Available Commands\n```\n")
-//                for (cmd in commands) {
-//                    if (cmd.category == CommandCategory.HIDDEN) continue
-//                    helpMSG.append("${cmd.name}\n")
-//                }
-//                helpMSG.append("```")
                 val self = client.getSelf()
                 sendMessage(mCE.message.channel) {
                     title = "${LXVBot.BOT_NAME} Available Commands"
@@ -94,7 +88,7 @@ object HelpCommand : BotCommand {
                             helpMSG.append("**None**")
                         } else {
                             for (usage in cmd.usages) {
-                                helpMSG.append("\n`h!${cmd.name}")
+                                helpMSG.append("\n`${LXVBot.BOT_PREFIX}${cmd.name}")
                                 for (arg in usage.args) {
                                     helpMSG.append(" ").append(arg.argType.prefix).append(arg.text)
                                         .append(arg.argType.suffix)
@@ -110,7 +104,11 @@ object HelpCommand : BotCommand {
                         sendMessage(mCE.message.channel, "No ${args.first()} command found", 5_000)
                     }
                 } else {
-                    sendMessage(mCE.message.channel, "Invalid help format. Check `h!help help` for more details", 5_000)
+                    sendMessage(
+                        mCE.message.channel,
+                        "Invalid help format. Check `${LXVBot.BOT_PREFIX}help help` for more details",
+                        5_000
+                    )
                 }
             }
         }

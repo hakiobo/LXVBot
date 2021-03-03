@@ -4,15 +4,10 @@ import LXVBot
 import LXVUser
 import Reminder
 import ReminderType
-import commands.utils.BotCommand
+import commands.utils.*
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.litote.kmongo.eq
-import toInstant
-import kotlin.math.max
-import kotlin.math.roundToLong
 
 object RPGCommand : BotCommand {
 
@@ -20,9 +15,40 @@ object RPGCommand : BotCommand {
         get() = "rpg"
     override val description: String
         get() = "View and change your settings for RPG Reminders"
+    override val category: CommandCategory
+        get() = CommandCategory.OTHER_BOTS
+    override val usages: List<CommandUsage>
+        get() = listOf(
+            CommandUsage(
+                listOf(Argument("enable", ArgumentType.EXACT), Argument("reminder")),
+                "Enables the selected RPG reminder"
+            ),
+            CommandUsage(
+                listOf(Argument("disable", ArgumentType.EXACT), Argument("reminder")),
+                "Disables the selected RPG reminder"
+            ),
+            CommandUsage(
+                listOf(Argument("reset", ArgumentType.EXACT), Argument("reminder")),
+                "Resets your cooldown for he selected RPG reminder"
+            ),
+            CommandUsage(
+                listOf(Argument(listOf("patreon", "p", "ppatreon", "partner", "pp"))),
+                "Checks your current RPG patreon status"
+            ),
+            CommandUsage(
+                listOf(Argument(listOf("patreon", "p")), Argument("patreon level")),
+                "Sets your patreon level to the specified value"
+            ),
+            CommandUsage(
+                listOf(Argument(listOf("ppatreon", "partner", "pp")), Argument("patreon level")),
+                "Sets your Partner's Patreon level to the specified value"
+            ),
+        )
 
     private val lootboxTypes = listOf("c", "common", "u", "uncommon", "r", "rare", "ep", "epic", "ed", "edgy")
     private val lootboxAliases = listOf("lb", "lootbox")
+    private val adventureAliases = listOf("adv", "adventure")
+    private val petAdvTypes = listOf("find", "learn", "drill")
 
     private val reminders = listOf(
         ReminderType("hunt", listOf(), 60_000, true, { args ->
@@ -32,6 +58,9 @@ object RPGCommand : BotCommand {
                 name
             }
         }),
+        ReminderType("pet", listOf("pets"), 4 * 3600_000, false, { "Pet Adventure" }) { args ->
+            args.size >= 4 && args[1].toLowerCase() in adventureAliases && args[2].toLowerCase() in petAdvTypes
+        },
         ReminderType("daily", listOf(), 24 * 3600_000, true),
         ReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
@@ -187,7 +216,8 @@ object RPGCommand : BotCommand {
                 val user = getUserFromDb(mCE.message.author!!.id, userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
-                        content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%"
+                        content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
+                                "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
                         allowedMentions {
                             repliedUser = false
                         }
@@ -214,7 +244,8 @@ object RPGCommand : BotCommand {
                 val user = getUserFromDb(mCE.message.author!!.id, userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
-                        content = "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
+                        content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
+                                "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
                         allowedMentions {
                             repliedUser = false
                         }
