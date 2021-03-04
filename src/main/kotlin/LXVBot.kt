@@ -44,7 +44,7 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
         if (mCE.message.author?.isBot == true) return
         if (mCE.guildId == null) {
-            sendMessage(mCE.message.channel, "I don't do DMs, sorry <:782542201837322292:pualOwO:>")
+            sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
             return
         }
         if (mCE.message.content.startsWith("$RPG_PREFIX ", true)) {
