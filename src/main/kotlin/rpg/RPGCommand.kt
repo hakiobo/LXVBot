@@ -63,6 +63,8 @@ object RPGCommand : BotCommand {
     private val lootboxAliases = listOf("lb", "lootbox")
     private val adventureAliases = listOf("adv", "adventure")
     private val petAdvTypes = listOf("find", "learn", "drill")
+    private val togetherAliases = listOf("together", "t")
+    private val hardmodeAliases = listOf("hardmode", "h")
     private val workAliases = listOf(
         "chop",
         "axe",
@@ -343,7 +345,8 @@ object RPGCommand : BotCommand {
                 reply(mCE.message) {
                     title = "${LXVBot.BOT_NAME} RPG Command Info"
                     footer {
-                        text = "You can also use *all* to enable/disable/reset all of the cooldowns"
+                        text =
+                            "You can also use \"${LXVBot.BOT_PREFIX} rpg [enable/disable/reset] all\" to enable/disable/reset all of the cooldowns"
                         icon = self.avatar.url
                     }
                     field {
@@ -383,8 +386,9 @@ object RPGCommand : BotCommand {
                         }
                     }
                     footer {
-                        text = "${LXVBot.BOT_PREFIX} rpg enable/disable <reminder> to set a specific reminder!\n" +
-                                "${LXVBot.BOT_PREFIX} rpg enable/disable all to set all reminders!"
+                        text =
+                            "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] <reminder>\" to set a specific reminder!\n" +
+                                    "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] all\" to set all reminders!"
                         icon = self.avatar.url
                     }
                 }
@@ -410,12 +414,20 @@ object RPGCommand : BotCommand {
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
             val data = user.rpg.rpgReminders[reminder.name]
             val curTime = mCE.message.id.toInstant().toEpochMilli()
-            val dif =
-                if (reminder.name == "hunt" && args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
+            val dif = if (reminder.name == "hunt") {
+                if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
+                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
+                } else if (args.drop(1).firstOrNull()?.toLowerCase() in hardmodeAliases
+                    && args.drop(2).firstOrNull()?.toLowerCase() in togetherAliases
+                ) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
                 } else {
                     reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
                 }
+            } else {
+                reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
+            }
+
             if (data?.enabled == true && (curTime - data.lastUse > dif)
             ) {
                 client.launch {
