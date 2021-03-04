@@ -215,6 +215,8 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         const val BOT_PREFIX = "lxv"
         const val RPG_PREFIX = "rpg"
         const val DB_NAME = "lxv"
+        const val HAKI_ID = 292483348738080769
+        const val ERYS_ID = 412812867348463636
 
         val PST: ZoneId = ZoneId.of("PST", ZoneId.SHORT_IDS)
 
