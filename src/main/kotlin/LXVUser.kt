@@ -1,3 +1,5 @@
+import rpg.RPGData
+
 data class LXVUser(
     val _id: Long,
     val rpg: RPGData = RPGData(),

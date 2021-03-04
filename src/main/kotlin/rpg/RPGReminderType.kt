@@ -1,9 +1,11 @@
-class ReminderType(
+package rpg
+
+class RPGReminderType(
     val name: String,
     val aliases: List<String>,
     val cooldownMS: Long,
     val patreonAffected: Boolean,
-    val responseName: ReminderType.(List<String>) -> String = { this.name },
+    val responseName: RPGReminderType.(List<String>) -> String = { this.name.capitalize() },
     val validator: (List<String>) -> Boolean = { true }
 ) {
 }

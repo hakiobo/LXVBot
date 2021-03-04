@@ -1,6 +1,6 @@
 import commands.Github
 import commands.Ping
-import commands.RPGCommand
+import rpg.RPGCommand
 import commands.meta.HelpCommand
 import commands.utils.BotCommand
 import dev.kord.common.entity.Snowflake

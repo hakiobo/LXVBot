@@ -1,13 +1,13 @@
-package commands
+package rpg
 
 import LXVBot
 import LXVUser
 import Reminder
-import ReminderType
 import commands.utils.*
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
 import org.litote.kmongo.eq
+import kotlin.math.roundToInt
 
 object RPGCommand : BotCommand {
 
@@ -29,7 +29,7 @@ object RPGCommand : BotCommand {
             ),
             CommandUsage(
                 listOf(Argument("reset", ArgumentType.EXACT), Argument("reminder")),
-                "Resets your cooldown for he selected RPG reminder"
+                "Resets your cooldown for the selected RPG reminder"
             ),
             CommandUsage(
                 listOf(Argument(listOf("patreon", "p", "ppatreon", "partner", "pp"))),
@@ -71,42 +71,48 @@ object RPGCommand : BotCommand {
         "drill",
         "dynamite"
     )
+    private val patreonLevels = listOf(
+        RPGPatreonLevel("regular", listOf("donator", "basic", "10%", "10", "0.9"), 0.9),
+        RPGPatreonLevel("epic", listOf("20%", "20", "0.8"), 0.8),
+        RPGPatreonLevel("super", listOf("35%", "35", "0.65"), 0.65),
+        RPGPatreonLevel("none", listOf("0%", "0", "0.0"), 1.0),
+    )
 
     private val reminders = listOf(
-        ReminderType("hunt", listOf(), 60_000, true, { args ->
+        RPGReminderType("hunt", listOf(), 60_000, true, { args ->
             if (args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
                 "hunt together"
             } else {
                 name
             }
         }),
-        ReminderType("pet", listOf("pets"), 4 * 3600_000, false, { "Pet Adventure" }) { args ->
+        RPGReminderType("pet", listOf("pets"), 4 * 3600_000, false, { "Pet Adventure" }) { args ->
             args.size >= 4 && args[1].toLowerCase() in adventureAliases && args[2].toLowerCase() in petAdvTypes
         },
-        ReminderType("daily", listOf(), 24 * 3600_000, true),
-        ReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
+        RPGReminderType("daily", listOf(), 24 * 3600_000, true),
+        RPGReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
         },
-        ReminderType("adventure", listOf("adv"), 3600_000, true),
-        ReminderType("training", listOf("tr"), 15 * 60_000, true),
-        ReminderType("quest", listOf("epic"), 6 * 3600_000, true) { args ->
+        RPGReminderType("adventure", listOf("adv"), 3600_000, true),
+        RPGReminderType("training", listOf("tr"), 15 * 60_000, true),
+        RPGReminderType("quest", listOf("epic"), 6 * 3600_000, true) { args ->
             if (args.first().toLowerCase() == "quest") {
                 true
             } else {
                 args.size >= 2 && args.first().toLowerCase() == "epic" && args[1].toLowerCase() == "quest"
             }
         },
-        ReminderType("duel", listOf(), 2 * 3600_000, false),
-        ReminderType(
+        RPGReminderType("duel", listOf(), 2 * 3600_000, false),
+        RPGReminderType(
             "work",
             workAliases,
             300_000,
             true,
-            { it.first() }
+            { it.first().capitalize() }
         ) { args ->
             args.first().toLowerCase() in workAliases
         },
-        ReminderType("horse", listOf(), 24 * 3600_000, true, { "Horse Breeding/Race" }) { args ->
+        RPGReminderType("horse", listOf(), 24 * 3600_000, true, { "Horse Breeding/Race" }) { args ->
             if (args.size < 2) {
                 false
             } else {
@@ -122,7 +128,7 @@ object RPGCommand : BotCommand {
                 }
             }
         },
-        ReminderType("arena", listOf("big"), 24 * 3600_000, true) { args ->
+        RPGReminderType("arena", listOf("big"), 24 * 3600_000, true) { args ->
             if (args.first().toLowerCase() == "arena") {
                 true
             } else {
@@ -132,7 +138,7 @@ object RPGCommand : BotCommand {
                         && args[2].toLowerCase() == "join"
             }
         },
-        ReminderType("miniboss", listOf("not"), 12 * 3600_000, true) { args ->
+        RPGReminderType("miniboss", listOf("not"), 12 * 3600_000, true) { args ->
             if (args.first().toLowerCase() == "miniboss") {
                 true
             } else {
@@ -145,7 +151,7 @@ object RPGCommand : BotCommand {
         },
     )
 
-    fun findReminder(args: List<String>, strict: Boolean = true): ReminderType? {
+    fun findReminder(args: List<String>, strict: Boolean = true): RPGReminderType? {
         val cmd = args.firstOrNull()?.toLowerCase() ?: return null
         for (reminder in reminders) {
             if (cmd == reminder.name || cmd in reminder.aliases) {
@@ -155,6 +161,15 @@ object RPGCommand : BotCommand {
             }
         }
         return null
+    }
+
+    fun findPatreonLevel(p: String): RPGPatreonLevel {
+        for (level in patreonLevels) {
+            if (p == level.name || p in level.aliases) {
+                return level
+            }
+        }
+        return patreonLevels.last()
     }
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
@@ -231,16 +246,13 @@ object RPGCommand : BotCommand {
                         }
                     }
                 } else {
-                    val new = when (args[1]) {
-                        "donator", "basic", "10%", "10", "0.9" -> 0.9 to "Regular. 10% reduced cooldowns"
-                        "epic", "20%", "20", "0.8" -> 0.8 to "Epic. 20% reduced cooldowns"
-                        "super", "35%", "35", "0.65" -> 0.65 to "Super. 35% reduced cooldowns"
-                        else -> 1.0 to "None. Regular cooldowns"
-                    }
-                    val newUser = user.copy(rpg = user.rpg.copy(patreonMult = new.first))
+                    val new = findPatreonLevel(args[1].toLowerCase())
+
+                    val newUser = user.copy(rpg = user.rpg.copy(patreonMult = new.multiplier))
                     userCol.replaceOne(LXVUser::_id eq user._id, newUser)
                     mCE.message.reply {
-                        content = "RPG Patreon Set to ${new.second}"
+                        content =
+                            "RPG Patreon Set to ${new.name}. ${(100 * (1 - new.multiplier)).roundToInt()}% reduced cooldowns"
                         allowedMentions {
                             repliedUser = false
                         }
@@ -259,16 +271,12 @@ object RPGCommand : BotCommand {
                         }
                     }
                 } else {
-                    val new = when (args[1]) {
-                        "donator", "basic", "10%", "10", "0.9" -> 0.9 to "Regular. 10% reduced cooldowns"
-                        "epic", "20%", "20", "0.8" -> 0.8 to "Epic. 20% reduced cooldowns"
-                        "super", "35%", "35", "0.65" -> 0.65 to "Super. 35% reduced cooldowns"
-                        else -> 1.0 to "None. Regular cooldowns"
-                    }
-                    val newUser = user.copy(rpg = user.rpg.copy(partnerPatreon = new.first))
+                    val new = findPatreonLevel(args[1].toLowerCase())
+                    val newUser = user.copy(rpg = user.rpg.copy(partnerPatreon = new.multiplier))
                     userCol.replaceOne(LXVUser::_id eq user._id, newUser)
                     mCE.message.reply {
-                        content = "RPG Partner Patreon Set to ${new.second}"
+                        content =
+                            "RPG Partner Patreon Set to ${new.name}. ${(100 * (1 - new.multiplier)).roundToInt()}% reduced cooldowns"
                         allowedMentions {
                             repliedUser = false
                         }
@@ -276,9 +284,10 @@ object RPGCommand : BotCommand {
                 }
             }
             "info" -> {
-                val info = StringBuilder()
+                val reminderInfo = StringBuilder()
+                val patreonInfo = StringBuilder()
                 for (reminder in reminders) {
-                    info.append(
+                    reminderInfo.append(
                         "${reminder.name.capitalize()} - ${
                             reminder.responseName(
                                 reminder,
@@ -287,13 +296,25 @@ object RPGCommand : BotCommand {
                         }\n"
                     )
                     if (reminder.aliases.isNotEmpty()) {
-                        info.append("Aliases: ${reminder.aliases.joinToString(", ")}\n")
+                        reminderInfo.append("Aliases: ${reminder.aliases.joinToString(", ")}\n")
                     }
-                    info.append("\n")
+                    reminderInfo.append("\n")
+                }
+                for (level in patreonLevels) {
+                    patreonInfo.append("${level.name.capitalize()}: ${(100 * (1 - level.multiplier)).roundToInt()}% Reduced Cooldowns\n")
+                    patreonInfo.append("Aliases: ${level.aliases.joinToString(", ")}\n\n")
                 }
                 reply(mCE.message) {
-                    title = "Available RPG Reminder Types"
-                    description = info.toString()
+                    title = "${LXVBot.BOT_NAME} RPG Command Info"
+                    field {
+                        name = "Available Reminder Types"
+                        value = reminderInfo.toString()
+                    }
+
+                    field {
+                        name = "Availabe Patreon Levels"
+                        value = patreonInfo.toString()
+                    }
                 }
             }
             else -> {
