@@ -18,14 +18,13 @@ import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
+import rpg.RPGCommand.handleRPGCommand
 import java.time.Instant
 import java.time.ZoneId
 import java.util.regex.Pattern
-import kotlin.math.max
-import kotlin.math.roundToLong
 
 
-class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
+class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
     val db = mongoCon.getDatabase(DB_NAME)
     val hakiDb = mongoCon.getDatabase("Hakibot")
@@ -78,36 +77,6 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
             toRun.runCMD(this, mCE, args.drop(1))
         } else {
             reply(mCE.message, "Invalid Command: use ${BOT_PREFIX}help to see available commands")
-        }
-    }
-
-    private suspend fun handleRPGCommand(mCE: MessageCreateEvent) {
-        val args = mCE.message.content.split(Pattern.compile("\\s+")).drop(1)
-        val reminder = RPGCommand.findReminder(args)
-        if (reminder != null) {
-            val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-            val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
-            val data = user.rpg.rpgReminders[reminder.name]
-            val curTime = mCE.message.id.toInstant().toEpochMilli()
-            val dif =
-                if (reminder.name == "hunt" && args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
-                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
-                } else {
-                    reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
-                }
-            if (data?.enabled == true && (curTime - data.lastUse > dif)
-            ) {
-                client.launch {
-                    user.rpg.rpgReminders[reminder.name] = Reminder(data.enabled, curTime, data.count + 1)
-                    userCol.replaceOne(LXVUser::_id eq user._id, user)
-                    delay(dif.roundToLong())
-                    mCE.message.reply {
-                        content = "rpg ${
-                            reminder.responseName(reminder, args)
-                        } cooldown is done"
-                    }
-                }
-            }
         }
     }
 
@@ -217,6 +186,8 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         const val DB_NAME = "lxv"
         const val HAKI_ID = 292483348738080769
         const val ERYS_ID = 412812867348463636
+        const val CHECKMARK_EMOJI = "\u2705"
+        const val CROSSMARK_EMOJI = "\u274c"
 
         val PST: ZoneId = ZoneId.of("PST", ZoneId.SHORT_IDS)
 
@@ -235,6 +206,8 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
                 null
             }
         }
+
+        fun getCheckmarkOrCross(checkmark: Boolean): String = if (checkmark) CHECKMARK_EMOJI else CROSSMARK_EMOJI
     }
 
 }
