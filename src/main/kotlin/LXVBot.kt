@@ -1,5 +1,6 @@
 import commands.Github
 import commands.OwOLeaderboard
+import commands.OwOStat
 import commands.Ping
 import rpg.RPGCommand
 import commands.meta.HelpCommand
@@ -18,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import java.time.Instant
@@ -39,6 +39,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         HelpCommand,
         Ping,
         OwOLeaderboard,
+        OwOStat,
     )
 
     suspend fun startup() {
@@ -85,7 +86,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         val reminder = RPGCommand.findReminder(args)
         if (reminder != null) {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-            val user = getUserFromDb(mCE.message.author!!.id, mCE.message.author, userCol)
+            val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
             val data = user.rpg.rpgReminders[reminder.name]
             val curTime = mCE.message.id.toInstant().toEpochMilli()
             val dif =
@@ -181,7 +182,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         return null
     }
 
-    suspend fun getUserFromDb(
+    suspend fun getUserFromDB(
         userID: Snowflake,
         u: User? = null,
         col: CoroutineCollection<LXVUser> = db.getCollection(LXVUser.DB_NAME)

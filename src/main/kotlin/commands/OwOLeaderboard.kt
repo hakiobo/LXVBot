@@ -70,7 +70,7 @@ object OwOLeaderboard : BotCommand {
                 val usernames = result.map { res ->
                     names.find { user ->
                         user._id == res.first
-                    }?.username ?: getUserFromDb(Snowflake(res.first), col = userCol).username
+                    }?.username ?: getUserFromDB(Snowflake(res.first), col = userCol).username
                 }
                 val guildName = mCE.getGuild()?.name ?: "No Name????"
                 sendMessage(mCE.message.channel) {

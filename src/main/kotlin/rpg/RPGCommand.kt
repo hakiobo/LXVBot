@@ -190,7 +190,7 @@ object RPGCommand : BotCommand {
                     val reminder = findReminder(listOf(args[1]), false)
                     if (reminder != null) {
                         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                        val user = getUserFromDb(mCE.message.author!!.id, col = userCol)
+                        val user = getUserFromDB(mCE.message.author!!.id, col = userCol)
                         if (args[0] == "reset") {
                             val setting = user.rpg.rpgReminders[reminder.name]
                             if (setting == null) {
@@ -236,7 +236,7 @@ object RPGCommand : BotCommand {
             }
             "patreon", "p" -> {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                val user = getUserFromDb(mCE.message.author!!.id, col = userCol)
+                val user = getUserFromDB(mCE.message.author!!.id, col = userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
                         content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
@@ -261,7 +261,7 @@ object RPGCommand : BotCommand {
             }
             "ppatreon", "partner", "pp" -> {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                val user = getUserFromDb(mCE.message.author!!.id, col = userCol)
+                val user = getUserFromDB(mCE.message.author!!.id, col = userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
                         content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
