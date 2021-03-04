@@ -1,7 +1,4 @@
-import commands.Github
-import commands.OwOLeaderboard
-import commands.OwOStat
-import commands.Ping
+import commands.*
 import rpg.RPGCommand
 import commands.meta.HelpCommand
 import commands.utils.BotCommand
@@ -40,6 +37,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         Ping,
         OwOLeaderboard,
         OwOStat,
+        CPCommand,
     )
 
     suspend fun startup() {
