@@ -163,7 +163,7 @@ object RPGCommand : BotCommand {
         return null
     }
 
-    fun findPatreonLevel(p: String): RPGPatreonLevel {
+    private fun findPatreonLevel(p: String): RPGPatreonLevel {
         for (level in patreonLevels) {
             if (p == level.name || p in level.aliases) {
                 return level
