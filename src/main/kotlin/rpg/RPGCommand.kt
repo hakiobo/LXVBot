@@ -81,9 +81,9 @@ object RPGCommand : BotCommand {
     private val reminders = listOf(
         RPGReminderType("hunt", listOf(), 60_000, true, { args ->
             if (args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
-                "hunt together"
+                "Hunt Together"
             } else {
-                name
+                name.capitalize()
             }
         }),
         RPGReminderType("pet", listOf("pets"), 4 * 3600_000, false, { "Pet Adventure" }) { args ->

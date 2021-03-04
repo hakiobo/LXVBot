@@ -14,8 +14,7 @@ suspend fun main() {
         MongoClientSettings.builder().applyConnectionString(MONGO_CONNECT_URI).writeConcern(WriteConcern.MAJORITY)
             .retryWrites(true).build()
     val mongoClient = KMongo.createClient(mongoSettings).coroutine
-    val db = mongoClient.getDatabase("lxv")
-    val bot = LXVBot(discordClient, db)
+    val bot = LXVBot(discordClient, mongoClient)
     bot.startup()
     discordClient.login()
 }

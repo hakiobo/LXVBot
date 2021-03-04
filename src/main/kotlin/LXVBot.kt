@@ -1,4 +1,5 @@
 import commands.Github
+import commands.OwOLeaderboard
 import commands.Ping
 import rpg.RPGCommand
 import commands.meta.HelpCommand
@@ -14,22 +15,28 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 import java.time.Instant
+import java.time.ZoneId
 import java.util.regex.Pattern
 import kotlin.math.max
 import kotlin.math.roundToLong
 
 
-class LXVBot(val client: Kord, val db: CoroutineDatabase) {
+class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
+
+    val db = mongoCon.getDatabase(DB_NAME)
+    val hakiDb = mongoCon.getDatabase("Hakibot")
 
     val commands = listOf(
         RPGCommand,
         Github,
         HelpCommand,
         Ping,
+        OwOLeaderboard,
     )
 
     suspend fun startup() {
@@ -188,7 +195,9 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
         const val BOT_NAME = "LXV Bot"
         const val BOT_PREFIX = "+"
         const val RPG_PREFIX = "rpg"
+        const val DB_NAME = "lxv"
 
+        val PST: ZoneId = ZoneId.of("PST", ZoneId.SHORT_IDS)
 
         fun getUserIdFromString(s: String?): Long? {
             return if (s == null) {
@@ -208,6 +217,5 @@ class LXVBot(val client: Kord, val db: CoroutineDatabase) {
     }
 
 }
-
 
 fun Snowflake.toInstant(): Instant = Instant.ofEpochMilli((value ushr 22) + 1420070400000L)
