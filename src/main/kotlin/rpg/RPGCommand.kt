@@ -190,26 +190,23 @@ object RPGCommand : BotCommand {
                     val reminder = findReminder(listOf(args[1]), false)
                     if (reminder != null) {
                         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                        val user = getUserFromDB(mCE.message.author!!.id, col = userCol)
+                        val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                         if (args[0] == "reset") {
                             val setting = user.rpg.rpgReminders[reminder.name]
                             if (setting == null) {
                                 user.rpg.rpgReminders[reminder.name] = Reminder(true)
                                 mCE.message.reply {
-                                    content = "Reset and enabled!"
+                                    content = "Reset and Enabled!"
                                     allowedMentions {
                                         repliedUser = false
                                     }
                                 }
                             } else {
                                 user.rpg.rpgReminders[reminder.name] = setting.copy(lastUse = 0L)
-                                mCE.message.reply {
-                                    content =
-                                        "Reset the Cooldown! Note: The bot may still remind you from your previous usages"
-                                    allowedMentions {
-                                        repliedUser = false
-                                    }
-                                }
+                                reply(
+                                    mCE.message,
+                                    "Reset the Cooldown! Note: ${LXVBot.BOT_NAME} may still remind you from your previous usages"
+                                )
                             }
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
                         } else {
@@ -222,12 +219,37 @@ object RPGCommand : BotCommand {
                                 user.rpg.rpgReminders[reminder.name] = setting.copy(enabled = enable)
                             }
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
-                            mCE.message.reply {
-                                content = "${if (enable) "en" else "dis"}abled!"
-                                allowedMentions {
-                                    repliedUser = false
+                            reply(mCE.message, "${reminder.name} Reminder ${if (enable) "En" else "Dis"}abled!")
+                        }
+                    } else if (args[1].toLowerCase() == "all") {
+                        val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+                        val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+                        val rpgData = user.rpg.rpgReminders
+                        if (args[0].toLowerCase() == "reset") {
+                            for (rpgReminder in reminders) {
+                                if (rpgData[rpgReminder.name] == null) {
+                                    rpgData[rpgReminder.name] = Reminder()
+                                } else {
+                                    rpgData[rpgReminder.name] = rpgData[rpgReminder.name]!!.copy(lastUse = 0L)
                                 }
                             }
+                            userCol.replaceOne(LXVUser::_id eq user._id, user)
+                            reply(
+                                mCE.message,
+                                "Reset All the Cooldowns! Note: ${LXVBot.BOT_NAME} may still remind you from your previous usages"
+                            )
+                        } else {
+                            val enable = args[0] == "enable"
+                            for (rpgReminder in reminders) {
+                                if (rpgData[rpgReminder.name] == null) {
+                                    rpgData[rpgReminder.name] = Reminder(enable)
+                                } else {
+                                    rpgData[rpgReminder.name] = rpgData[rpgReminder.name]!!.copy(enabled = enable)
+                                }
+                            }
+                            userCol.replaceOne(LXVUser::_id eq user._id, user)
+                            reply(mCE.message, "All Rpg Reminders ${if (enable) "En" else "Dis"}abled!")
+
                         }
                     } else {
                         err("Could not find reminder type")
@@ -236,7 +258,7 @@ object RPGCommand : BotCommand {
             }
             "patreon", "p" -> {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                val user = getUserFromDB(mCE.message.author!!.id, col = userCol)
+                val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
                         content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
@@ -261,7 +283,7 @@ object RPGCommand : BotCommand {
             }
             "ppatreon", "partner", "pp" -> {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                val user = getUserFromDB(mCE.message.author!!.id, col = userCol)
+                val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
                         content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
@@ -314,6 +336,29 @@ object RPGCommand : BotCommand {
                     field {
                         name = "Availabe Patreon Levels"
                         value = patreonInfo.toString()
+                    }
+                }
+            }
+            "status", "settings", "stats" -> {
+                val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+                val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, col)
+                reply(mCE.message) {
+                    author {
+                        name = "${user.username}'s RPG Reminder Settings"
+                        url = mCE.message.author?.avatar?.url
+                    }
+                    for (reminder in reminders) {
+                        field {
+                            inline = true
+                            name = "${reminder.name.capitalize()} - ${
+                                reminder.responseName(
+                                    reminder,
+                                    listOf(reminder.name)
+                                )
+                            }"
+                            val r = user.rpg.rpgReminders[reminder.name]
+                            value = "Enabled: ${r?.enabled ?: false}\nReminder Count: ${r?.count ?: 0}"
+                        }
                     }
                 }
             }
