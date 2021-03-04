@@ -66,6 +66,12 @@ object OwOLeaderboard : BotCommand {
                 }
 
                 val names = userCol.find(or(filters)).toList()
+
+                val usernames = result.map { res ->
+                    names.find { user ->
+                        user._id == res.first
+                    }?.username ?: getUserFromDb(Snowflake(res.first), col = userCol).username
+                }
                 val guildName = mCE.getGuild()?.name ?: "No Name????"
                 sendMessage(mCE.message.channel) {
                     color = Color(0xABCDEF)
@@ -73,8 +79,7 @@ object OwOLeaderboard : BotCommand {
 
                     for (x in result.indices) {
                         val res = result[x]
-                        val username =
-                            names.find { it._id == res.first }?.username ?: "Deleted User ${res.first}"
+                        val username = usernames[x] ?: "Deleted User ${res.first}"
                         field {
                             name = "#${x + 1}: $username"
                             value = "${res.second} OwOs"

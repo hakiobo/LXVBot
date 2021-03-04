@@ -10,6 +10,7 @@ import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.User
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
@@ -19,6 +20,7 @@ import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 import java.time.Instant
 import java.time.ZoneId
 import java.util.regex.Pattern
@@ -83,7 +85,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         val reminder = RPGCommand.findReminder(args)
         if (reminder != null) {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-            val user = getUserFromDb(mCE.message.author!!.id, userCol)
+            val user = getUserFromDb(mCE.message.author!!.id, mCE.message.author, userCol)
             val data = user.rpg.rpgReminders[reminder.name]
             val curTime = mCE.message.id.toInstant().toEpochMilli()
             val dif =
@@ -179,15 +181,31 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         return null
     }
 
-
-    suspend fun getUserFromDb(id: Snowflake, col: CoroutineCollection<LXVUser>): LXVUser {
-        val user = col.findOne(LXVUser::_id eq id.value)
-        return if (user == null) {
-            val new = LXVUser(id.value)
-            col.insertOne(new)
-            new
-        } else {
+    suspend fun getUserFromDb(
+        userID: Snowflake,
+        u: User? = null,
+        col: CoroutineCollection<LXVUser> = db.getCollection(LXVUser.DB_NAME)
+    ): LXVUser {
+        val query = col.findOne(LXVUser::_id eq userID.value)
+        return if (query == null) {
+            val user = if (u == null) {
+                LXVUser(userID.value, client.getUser(userID)?.username ?: "Deleted User#${userID.value}")
+            } else {
+                LXVUser(userID.value, u.username)
+            }
+            col.insertOne(user)
             user
+        } else {
+            if (u != null && u.username != query.username) {
+                col.updateOne(LXVUser::_id eq query._id, setValue(LXVUser::username, u.username))
+                query.copy(username = u.username)
+            } else if (query.username == null) {
+                val name = client.getUser(userID)?.username ?: "Deleted User#${userID.value}"
+                col.updateOne(LXVUser::_id eq query._id, setValue(LXVUser::username, name))
+                query.copy(username = name)
+            } else {
+                query
+            }
         }
     }
 
