@@ -212,7 +212,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
 
     companion object {
         const val BOT_NAME = "LXV Bot"
-        const val BOT_PREFIX = "+"
+        const val BOT_PREFIX = "lxv"
         const val RPG_PREFIX = "rpg"
         const val DB_NAME = "lxv"
 
