@@ -38,6 +38,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
         OwOLeaderboard,
         OwOStat,
         CPCommand,
+        ServersCommand,
     )
 
     suspend fun startup() {
@@ -71,6 +72,7 @@ class LXVBot(val client: Kord, private val mongoCon: CoroutineClient) {
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
         val args = msg.split(Pattern.compile("\\s+"))
         val cmd = args.first().toLowerCase()
+        if (cmd.isBlank()) return
         val toRun = lookupCMD(cmd)
         if (toRun != null) {
             toRun.runCMD(this, mCE, args.drop(1))
