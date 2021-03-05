@@ -60,8 +60,12 @@ object OwOStat : BotCommand {
             query.normalize(mCE)
             val username = getUserFromDB(Snowflake(query.user)).username!!
             val guildName = mCE.getGuild()!!.name
+            val avatar = client.getUser(Snowflake(userId))?.avatar?.url
             sendMessage(mCE.message.channel) {
-                title = "$username's OwOs in $guildName"
+                author {
+                    name = "$username's OwOs in $guildName"
+                    icon = avatar
+                }
                 description = "__**Total**__: ${query.owoCount}\n"
                 field {
                     name = "Current Stats"

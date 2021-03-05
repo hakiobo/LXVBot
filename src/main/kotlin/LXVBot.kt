@@ -38,6 +38,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         OwOStat,
         CPCommand,
         ServersCommand,
+        Invite,
     )
 
     suspend fun startup() {
