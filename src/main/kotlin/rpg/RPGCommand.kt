@@ -217,7 +217,7 @@ object RPGCommand : BotCommand {
                                 user.rpg.rpgReminders[reminder.name] = setting.copy(lastUse = 0L)
                                 reply(
                                     mCE.message,
-                                    "Reset the Cooldown! Note: ${LXVBot.BOT_NAME} may still remind you from your previous usages"
+                                    "Reset the Cooldown!"
                                 )
                             }
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
@@ -251,7 +251,7 @@ object RPGCommand : BotCommand {
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
                             reply(
                                 mCE.message,
-                                "Reset All the Cooldowns! Note: ${LXVBot.BOT_NAME} may still remind you from your previous usages"
+                                "Reset All the Cooldowns!"
                             )
                         } else {
                             val enable = args[0] == "enable"
@@ -434,10 +434,13 @@ object RPGCommand : BotCommand {
                     user.rpg.rpgReminders[reminder.name] = Reminder(data.enabled, curTime, data.count + 1)
                     userCol.replaceOne(LXVUser::_id eq user._id, user)
                     delay(dif.roundToLong())
-                    mCE.message.reply {
-                        content = "RPG ${
-                            reminder.responseName(reminder, args)
-                        } cooldown is done"
+                    val check = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+                    if (check.rpg.rpgReminders[reminder.name]?.lastUse == curTime) {
+                        mCE.message.reply {
+                            content = "RPG ${
+                                reminder.responseName(reminder, args)
+                            } cooldown is done"
+                        }
                     }
                 }
             }
