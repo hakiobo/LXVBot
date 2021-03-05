@@ -1,3 +1,3 @@
 package taco
 
-data class TacoData(val tacoReminders: TacoReminder)
+data class TacoData(val tacoReminders: TacoReminder = TacoReminder())

@@ -1,8 +1,15 @@
 package moderation
 
 import LXVBot
+import LXVUser
+import ServerData
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.entity.User
 import dev.kord.core.event.message.MessageCreateEvent
+import org.litote.kmongo.div
+import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
+import kotlin.math.min
 
 val LEVEL_ROLE_IDS = listOf(
     Snowflake(714402516015513691),
@@ -18,6 +25,7 @@ val LEVEL_ROLE_IDS = listOf(
 )
 
 const val CAMERA_ROLE_ID = 714185072911056956
+const val CAMERA_ROLE_LEVEL = 5
 
 suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
     val msg = mCE.message.content
@@ -26,8 +34,8 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
         return
     }
     val args = msg.split(" ")
-    val user = LXVBot.getUserIdFromString(args[1].dropLast(1))
-    if (user == null) {
+    val userId = LXVBot.getUserIdFromString(args[1].dropLast(1))
+    if (userId == null) {
         println("Something wrong happened with reading mee6's level up message: user parsing")
         return
     }
@@ -36,16 +44,19 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
         println("Something wrong happened with reading mee6's level up message: level parsing")
         return
     }
-    if (level >= 3) {
-        val member = client.getUser(Snowflake(user))?.asMemberOrNull(mCE.guildId!!)
+    var user: User? = null
+    if (level >= min(CAMERA_ROLE_LEVEL, 10)) {
+        user = client.getUser(Snowflake(userId))
+        val member = user?.asMemberOrNull(mCE.guildId!!)
         if (member == null) {
             println("Could not find that user in this guild")
             return
         }
         val curRoles = member.roleIds
 
-        if(Snowflake(CAMERA_ROLE_ID) !in curRoles){
-            member.addRole(Snowflake(CAMERA_ROLE_ID), "They reached level 3 or higher in Mee6")
+
+        if (level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in curRoles) {
+            member.addRole(Snowflake(CAMERA_ROLE_ID), "They reached level $CAMERA_ROLE_LEVEL or higher in Mee6")
         }
 
 
@@ -68,4 +79,8 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
             }
         }
     }
+
+    val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+    getUserFromDB(Snowflake(userId), user, userCol)
+    userCol.updateOne(LXVUser::_id eq userId, setValue(LXVUser::serverData / ServerData::mee6Level, level))
 }

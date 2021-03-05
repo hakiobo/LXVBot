@@ -20,6 +20,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import rpg.RPGCommand.handleRPGCommand
+import taco.TacoCommand
 import java.time.Instant
 import java.time.ZoneId
 import java.util.regex.Pattern
@@ -40,6 +41,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         CPCommand,
         ServersCommand,
         Invite,
+        TacoCommand,
     )
 
     suspend fun startup() {
