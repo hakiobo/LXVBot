@@ -14,6 +14,7 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import moderation.handleMee6LevelUpMessage
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
@@ -51,6 +52,9 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
 
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
+        if (mCE.message.author?.id?.value == MEE6_ID && mCE.message.channelId.value == LEVEL_UP_CHANNEL_ID) {
+            handleMee6LevelUpMessage(mCE)
+        }
         if (mCE.message.author?.isBot == true) return
         if (mCE.guildId == null) {
             sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
@@ -152,7 +156,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         return null
     }
 
-    suspend fun getUserFromDB(
+    internal suspend fun getUserFromDB(
         userID: Snowflake,
         u: User? = null,
         col: CoroutineCollection<LXVUser> = db.getCollection(LXVUser.DB_NAME)
@@ -187,6 +191,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val DB_NAME = "lxv"
         const val HAKI_ID = 292483348738080769
         const val ERYS_ID = 412812867348463636
+        const val MEE6_ID = 159985870458322944
+        const val LEVEL_UP_CHANNEL_ID = 763523136238780456
         const val CHECKMARK_EMOJI = "\u2705"
         const val CROSSMARK_EMOJI = "\u274c"
 

@@ -1,0 +1,4 @@
+package taco
+
+object TacoCommand {
+}
