@@ -16,5 +16,7 @@ suspend fun main() {
     val mongoClient = KMongo.createClient(mongoSettings).coroutine
     val bot = LXVBot(discordClient, mongoClient)
     bot.startup()
-    discordClient.login()
+    discordClient.login{
+        watching("https://www.patreon.com/hakibot")
+    }
 }
