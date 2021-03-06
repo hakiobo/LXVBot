@@ -7,7 +7,6 @@ import commands.utils.CommandUsage
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
-import toInstant
 import java.time.Duration
 import java.time.Instant
 
@@ -26,14 +25,14 @@ object Ping : BotCommand {
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         val received = Instant.now()
         val msg =
-            "\ud83c\udfd3 Pong! Received in ${Duration.between(mCE.message.id.toInstant(), received).toMillis()} ms"
+            "\ud83c\udfd3 Pong! Received in ${Duration.between(mCE.message.id.timeStamp, received).toMillis()} ms"
         val sent = mCE.message.reply {
             content = "$msg\nReply Sent In `Waiting . . .`"
             this.allowedMentions {
                 repliedUser = false
             }
         }
-        val time = Duration.between(received, sent.id.toInstant()).toMillis()
+        val time = Duration.between(received, sent.id.timeStamp).toMillis()
         sent.edit {
             this.content = "$msg\nReply Sent In $time ms"
             this.allowedMentions {

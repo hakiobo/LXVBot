@@ -1,5 +1,4 @@
 import dev.kord.core.event.message.MessageCreateEvent
-import toInstant
 import java.time.Instant
 import java.time.Year
 import java.time.ZoneId
@@ -21,7 +20,7 @@ data class UserGuildOwOCount(
 ) {
 
     fun normalize(mCE: MessageCreateEvent): Boolean {
-        val curTime = mCE.message.id.toInstant().atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
+        val curTime = mCE.message.id.timeStamp.atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
         val oldTime = Instant.ofEpochMilli(lastOWO).atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
 
         when (curTime.year - oldTime.year) {

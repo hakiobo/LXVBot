@@ -3,13 +3,13 @@ package rpg
 import LXVBot
 import LXVUser
 import Reminder
+import commands.meta.HelpCommand
 import commands.utils.*
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.litote.kmongo.eq
-import toInstant
 import java.util.regex.Pattern
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -25,6 +25,7 @@ object RPGCommand : BotCommand {
         get() = CommandCategory.OTHER_BOTS
     override val usages: List<CommandUsage>
         get() = listOf(
+            CommandUsage(listOf(), "Shows this help screen"),
             CommandUsage(
                 listOf(Argument("enable", ArgumentType.EXACT), Argument("reminder")),
                 "Enables the selected RPG reminder"
@@ -55,7 +56,7 @@ object RPGCommand : BotCommand {
             ),
             CommandUsage(
                 listOf(Argument(listOf("status", "settings", "stats", "stat"))),
-                "Shows your reminder count and status for each reminder type"
+                "Shows your reminder count and status for each RPG reminder"
             ),
         )
 
@@ -194,7 +195,8 @@ object RPGCommand : BotCommand {
             }
         }
         if (args.isEmpty()) {
-            err("Not enough args for any of the commands")
+            HelpCommand.runCMD(this, mCE, listOf(this@RPGCommand.name))
+            return
         }
         when (args[0].toLowerCase()) {
             "enable", "disable", "reset" -> {
@@ -233,7 +235,7 @@ object RPGCommand : BotCommand {
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
                             reply(
                                 mCE.message,
-                                "${reminder.name.capitalize()} Reminder ${if (enable) "En" else "Dis"}abled!"
+                                "RPG ${reminder.name.capitalize()} Reminder ${if (enable) "En" else "Dis"}abled!"
                             )
                         }
                     } else if (args[1].toLowerCase() == "all") {
@@ -413,7 +415,7 @@ object RPGCommand : BotCommand {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
             val data = user.rpg.rpgReminders[reminder.name]
-            val curTime = mCE.message.id.toInstant().toEpochMilli()
+            val curTime = mCE.message.id.timeStamp.toEpochMilli()
             val dif = if (reminder.name == "hunt") {
                 if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
@@ -436,11 +438,7 @@ object RPGCommand : BotCommand {
                     delay(dif.roundToLong())
                     val check = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                     if (check.rpg.rpgReminders[reminder.name]?.lastUse == curTime) {
-                        mCE.message.reply {
-                            content = "RPG ${
-                                reminder.responseName(reminder, args)
-                            } cooldown is done"
-                        }
+                        reply(mCE.message, "RPG ${reminder.responseName(reminder, args)} cooldown is done", true)
                     }
                 }
             }

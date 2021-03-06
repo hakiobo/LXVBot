@@ -10,7 +10,6 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.aggregate
-import toInstant
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KProperty1
@@ -107,61 +106,61 @@ object OwOLeaderboard : BotCommand {
     }
 
     fun toEndOfWeek(id: Snowflake): Duration? {
-        val time = id.toInstant().atZone(LXVBot.PST)
+        val time = id.timeStamp.atZone(LXVBot.PST)
         val endTime = time.toLocalDate().plusDays(7L - (time.dayOfWeek.value % 7)).atStartOfDay(LXVBot.PST)
 
         return Duration.between(time, endTime)
     }
 
     fun toEndOfDay(id: Snowflake): Duration? {
-        val time = id.toInstant().atZone(LXVBot.PST)
+        val time = id.timeStamp.atZone(LXVBot.PST)
         val endTime = time.toLocalDate().plusDays(1).atStartOfDay(LXVBot.PST)
         return Duration.between(time, endTime)
     }
 
     fun toEndOfMonth(id: Snowflake): Duration? {
-        val time = id.toInstant().atZone(LXVBot.PST)
+        val time = id.timeStamp.atZone(LXVBot.PST)
         val endTime = time.toLocalDate().plusMonths(1).withDayOfMonth(1).atStartOfDay(LXVBot.PST)
 
         return Duration.between(time, endTime)
     }
 
     fun toEndOfYear(id: Snowflake): Duration? {
-        val time = id.toInstant().atZone(LXVBot.PST)
+        val time = id.timeStamp.atZone(LXVBot.PST)
         val endTime = time.toLocalDate().plusYears(1).withDayOfYear(1).atStartOfDay(LXVBot.PST)
 
         return Duration.between(time, endTime)
     }
 
     fun getYearStart(id: Snowflake): Instant =
-        id.toInstant().atZone(LXVBot.PST).toLocalDate().withDayOfYear(1).atStartOfDay(LXVBot.PST).toInstant()
+        id.timeStamp.atZone(LXVBot.PST).toLocalDate().withDayOfYear(1).atStartOfDay(LXVBot.PST).toInstant()
 
     fun getPrevYearStart(id: Snowflake): Instant =
-        id.toInstant().atZone(LXVBot.PST).toLocalDate().minusYears(1L).withDayOfYear(1).atStartOfDay(LXVBot.PST)
+        id.timeStamp.atZone(LXVBot.PST).toLocalDate().minusYears(1L).withDayOfYear(1).atStartOfDay(LXVBot.PST)
             .toInstant()
 
     fun getMonthStart(id: Snowflake): Instant =
-        id.toInstant().atZone(LXVBot.PST).toLocalDate().withDayOfMonth(1).atStartOfDay(LXVBot.PST).toInstant()
+        id.timeStamp.atZone(LXVBot.PST).toLocalDate().withDayOfMonth(1).atStartOfDay(LXVBot.PST).toInstant()
 
     fun getPrevMonthStart(id: Snowflake): Instant =
-        id.toInstant().atZone(LXVBot.PST).toLocalDate().withDayOfMonth(1).minusMonths(1).atStartOfDay(LXVBot.PST)
+        id.timeStamp.atZone(LXVBot.PST).toLocalDate().withDayOfMonth(1).minusMonths(1).atStartOfDay(LXVBot.PST)
             .toInstant()
 
     fun getWeekStart(id: Snowflake): Instant {
-        val time = id.toInstant().atZone(LXVBot.PST).toLocalDate()
+        val time = id.timeStamp.atZone(LXVBot.PST).toLocalDate()
         return time.minusDays(time.dayOfWeek.value % 7L).atStartOfDay(LXVBot.PST).toInstant()
     }
 
     fun getPrevWeekStart(id: Snowflake): Instant {
-        val time = id.toInstant().atZone(LXVBot.PST).toLocalDate()
+        val time = id.timeStamp.atZone(LXVBot.PST).toLocalDate()
         return time.minusDays((time.dayOfWeek.value % 7L)).minusWeeks(1).atStartOfDay(LXVBot.PST).toInstant()
     }
 
     fun getTodayStart(id: Snowflake): Instant =
-        id.toInstant().atZone(LXVBot.PST).toLocalDate().atStartOfDay(LXVBot.PST).toInstant()
+        id.timeStamp.atZone(LXVBot.PST).toLocalDate().atStartOfDay(LXVBot.PST).toInstant()
 
     fun getYesterdayStart(id: Snowflake): Instant =
-        id.toInstant().atZone(LXVBot.PST).toLocalDate().minusDays(1).atStartOfDay(LXVBot.PST).toInstant()
+        id.timeStamp.atZone(LXVBot.PST).toLocalDate().minusDays(1).atStartOfDay(LXVBot.PST).toInstant()
 
 
     private enum class TimeUnit(

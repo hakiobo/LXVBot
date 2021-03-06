@@ -21,6 +21,7 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import rpg.RPGCommand.handleRPGCommand
 import taco.TacoCommand
+import taco.TacoCommand.handleTacoCommand
 import java.time.Instant
 import java.time.ZoneId
 import java.util.regex.Pattern
@@ -64,6 +65,9 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         }
         if (mCE.message.content.startsWith("$RPG_PREFIX ", true)) {
             handleRPGCommand(mCE)
+        }
+        if(mCE.message.content.startsWith(TACO_SHACK_PREFIX, false)){
+            handleTacoCommand(mCE, mCE.message.content.drop(TACO_SHACK_PREFIX.length).trim().split(Pattern.compile("\\s+")))
         }
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
             handleCommand(mCE, mCE.message.content.drop(BOT_PREFIX.length).trim())
@@ -190,13 +194,14 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val BOT_NAME = "LXV Bot"
         const val BOT_PREFIX = "lxv"
         const val RPG_PREFIX = "rpg"
+        const val TACO_SHACK_PREFIX = "ts"
         const val DB_NAME = "lxv"
         const val HAKI_ID = 292483348738080769
         const val ERYS_ID = 412812867348463636
         const val MEE6_ID = 159985870458322944
         const val LEVEL_UP_CHANNEL_ID = 763523136238780456
-        const val CHECKMARK_EMOJI = "\u2705"
-        const val CROSSMARK_EMOJI = "\u274c"
+        private const val CHECKMARK_EMOJI = "\u2705"
+        private const val CROSSMARK_EMOJI = "\u274c"
 
         val PST: ZoneId = ZoneId.of("PST", ZoneId.SHORT_IDS)
 
@@ -220,5 +225,3 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     }
 
 }
-
-fun Snowflake.toInstant(): Instant = Instant.ofEpochMilli((value ushr 22) + 1420070400000L)

@@ -8,7 +8,6 @@ import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import org.litote.kmongo.eq
-import toInstant
 
 object OwOStat : BotCommand {
     override val name: String
@@ -56,7 +55,7 @@ object OwOStat : BotCommand {
         if (query == null) {
             sendMessage(mCE.message.channel, "Could not find any OwO's for that user in this server", 10_000)
         } else {
-            val now = mCE.message.id.toInstant().atZone(LXVBot.PST)
+            val now = mCE.message.id.timeStamp.atZone(LXVBot.PST)
             query.normalize(mCE)
             val username = getUserFromDB(Snowflake(query.user)).username!!
             val guildName = mCE.getGuild()!!.name
