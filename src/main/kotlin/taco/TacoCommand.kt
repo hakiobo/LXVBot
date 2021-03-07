@@ -44,7 +44,7 @@ object TacoCommand : BotCommand {
                 listOf(Argument(listOf("status", "settings", "stats", "stat"))),
                 "Shows your reminder count and status for each TacoShack reminder"
             ),
-            )
+        )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         if (args.isEmpty()) {
@@ -253,8 +253,14 @@ object TacoCommand : BotCommand {
                             setValue(LXVUser::taco / TacoData::tacoReminders / reminder.prop, new)
                         )
                         delay(reminder.time)
-                        val check = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
-                        if (reminder.prop.get(check.taco.tacoReminders).lastUse == curTime) {
+                        val check = reminder.prop.get(
+                            getUserFromDB(
+                                mCE.message.author!!.id,
+                                mCE.message.author,
+                                userCol
+                            ).taco.tacoReminders
+                        )
+                        if (check.lastUse == curTime && check.enabled) {
                             reply(
                                 mCE.message,
                                 "Taco Shack ${reminder.aliases.first().capitalize()} cooldown is done",

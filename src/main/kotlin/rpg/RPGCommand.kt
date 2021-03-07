@@ -107,7 +107,7 @@ object RPGCommand : BotCommand {
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
         },
         RPGReminderType("adventure", listOf("adv"), 3600_000, true),
-        RPGReminderType("training", listOf("tr"), 15 * 60_000 + 3_000, true),
+        RPGReminderType("training", listOf("tr", "ultraining"), 15 * 60_000 + 3_000, true),
         RPGReminderType("quest", listOf("epic"), 6 * 3600_000, true) { args ->
             if (args.first().toLowerCase() == "quest") {
                 true
@@ -436,8 +436,12 @@ object RPGCommand : BotCommand {
                     user.rpg.rpgReminders[reminder.name] = Reminder(data.enabled, curTime, data.count + 1)
                     userCol.replaceOne(LXVUser::_id eq user._id, user)
                     delay(dif.roundToLong())
-                    val check = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
-                    if (check.rpg.rpgReminders[reminder.name]?.lastUse == curTime) {
+                    val check = getUserFromDB(
+                        mCE.message.author!!.id,
+                        mCE.message.author,
+                        userCol
+                    ).rpg.rpgReminders[reminder.name]
+                    if (check?.lastUse == curTime || check?.enabled == true) {
                         reply(mCE.message, "RPG ${reminder.responseName(reminder, args)} cooldown is done", true)
                     }
                 }
