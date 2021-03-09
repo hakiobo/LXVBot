@@ -102,7 +102,7 @@ object RPGCommand : BotCommand {
         RPGReminderType("pet", listOf("pets"), 4 * 3600_000, false, { "Pet Adventure" }) { args ->
             args.size >= 4 && args[1].toLowerCase() in adventureAliases && args[2].toLowerCase() in petAdvTypes
         },
-        RPGReminderType("daily", listOf(), 24 * 3600_000, true),
+        RPGReminderType("daily", listOf(), (23 * 60 + 50) * 60_000, true),
         RPGReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
         },
@@ -441,7 +441,7 @@ object RPGCommand : BotCommand {
                         mCE.message.author,
                         userCol
                     ).rpg.rpgReminders[reminder.name]
-                    if (check?.lastUse == curTime || check?.enabled == true) {
+                    if (check?.lastUse == curTime && check.enabled) {
                         reply(mCE.message, "RPG ${reminder.responseName(reminder, args)} cooldown is done", true)
                     }
                 }

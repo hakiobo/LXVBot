@@ -263,7 +263,7 @@ object TacoCommand : BotCommand {
                         if (check.lastUse == curTime && check.enabled) {
                             reply(
                                 mCE.message,
-                                "Taco Shack ${reminder.aliases.first().capitalize()} cooldown is done",
+                                "Taco Shack ${reminder.name.toLowerCase().capitalize()} cooldown is done",
                                 true
                             )
                         }
