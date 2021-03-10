@@ -1,8 +1,8 @@
 package moderation
 
 import LXVBot
-import LXVUser
-import ServerData
+import entities.LXVUser
+import entities.ServerData
 import commands.utils.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Permission

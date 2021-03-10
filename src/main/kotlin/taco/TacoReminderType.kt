@@ -1,6 +1,6 @@
 package taco
 
-import Reminder
+import entities.Reminder
 import kotlin.reflect.KProperty1
 
 enum class TacoReminderType(

@@ -1,8 +1,8 @@
 package moderation
 
 import LXVBot
-import LXVUser
-import ServerData
+import entities.LXVUser
+import entities.ServerData
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.User
 import dev.kord.core.event.message.MessageCreateEvent

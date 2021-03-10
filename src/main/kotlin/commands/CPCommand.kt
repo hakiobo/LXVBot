@@ -1,10 +1,10 @@
 package commands
 
-import CreationInfo
-import CustomPatreon
 import LXVBot
 import commands.utils.*
 import dev.kord.core.event.message.MessageCreateEvent
+import entities.CreationInfo
+import entities.CustomPatreon
 import org.bson.conversions.Bson
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineCollection

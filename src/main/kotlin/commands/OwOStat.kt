@@ -2,11 +2,11 @@ package commands
 
 import LXVBot
 import LXVBot.Companion.getUserIdFromString
-import UserGuildOwOCount
 import commands.utils.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
+import entities.UserGuildOwOCount
 import org.litote.kmongo.eq
 
 object OwOStat : BotCommand {

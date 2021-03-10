@@ -1,3 +1,5 @@
+package entities
+
 import rpg.RPGData
 import taco.TacoData
 

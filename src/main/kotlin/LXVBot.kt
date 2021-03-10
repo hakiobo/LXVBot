@@ -12,9 +12,11 @@ import dev.kord.core.entity.User
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
+import entities.LXVUser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moderation.AssignChannel
+import moderation.PicBan
 import moderation.RemoveChannel
 import moderation.handleMee6LevelUpMessage
 import org.litote.kmongo.coroutine.CoroutineClient
@@ -46,6 +48,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         TacoCommand,
         AssignChannel,
         RemoveChannel,
+        PicBan,
     )
 
     suspend fun startup() {

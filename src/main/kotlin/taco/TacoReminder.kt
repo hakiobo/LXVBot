@@ -1,6 +1,6 @@
 package taco
 
-import Reminder
+import entities.Reminder
 
 data class TacoReminder(
     val tip: Reminder = Reminder(),

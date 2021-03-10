@@ -1,8 +1,8 @@
 package taco
 
 import LXVBot
-import LXVUser
-import Reminder
+import entities.LXVUser
+import entities.Reminder
 import commands.meta.HelpCommand
 import commands.utils.*
 import dev.kord.core.event.message.MessageCreateEvent
@@ -107,7 +107,7 @@ object TacoCommand : BotCommand {
                         mCE.message,
                         "TacoShack ${
                             reminder.name.toLowerCase().capitalize()
-                        } Reminder Already ${if (enable) "En" else "Dis"}abled!"
+                        } entities.Reminder Already ${if (enable) "En" else "Dis"}abled!"
                     )
                 } else {
                     userCol.updateOne(
@@ -118,13 +118,13 @@ object TacoCommand : BotCommand {
                         mCE.message,
                         "TacoShack ${
                             reminder.name.toLowerCase().capitalize()
-                        } Reminder ${if (enable) "En" else "Dis"}abled!"
+                        } entities.Reminder ${if (enable) "En" else "Dis"}abled!"
                     )
                 }
             } else {
                 reply(
                     mCE.message,
-                    "That's not a valid Taco Shack Reminder. Use `${LXVBot.BOT_PREFIX}${name} info to see a list of Valid Reminders`"
+                    "That's not a valid Taco Shack entities.Reminder. Use `${LXVBot.BOT_PREFIX}${name} info to see a list of Valid Reminders`"
                 )
             }
         }
@@ -157,7 +157,7 @@ object TacoCommand : BotCommand {
                 LXVUser::_id eq user._id,
                 setValue(LXVUser::taco / TacoData::tacoReminders, newReminderSettings)
             )
-            reply(mCE.message, "All Taco Shack Reminder Cooldowns Reset!")
+            reply(mCE.message, "All Taco Shack entities.Reminder Cooldowns Reset!")
         } else {
             val reminder = findTacoReminder(reminderArg)
             if (reminder != null) {
@@ -174,13 +174,13 @@ object TacoCommand : BotCommand {
                     )
                     reply(
                         mCE.message,
-                        "TacoShack ${reminder.name.toLowerCase().capitalize()} Reminder Cooldown Reset!"
+                        "TacoShack ${reminder.name.toLowerCase().capitalize()} entities.Reminder Cooldown Reset!"
                     )
                 }
             } else {
                 reply(
                     mCE.message,
-                    "That's not a valid Taco Shack Reminder. Use `${LXVBot.BOT_PREFIX}${name} info to see a list of Valid Reminders`"
+                    "That's not a valid Taco Shack entities.Reminder. Use `${LXVBot.BOT_PREFIX}${name} info to see a list of Valid Reminders`"
                 )
             }
         }
@@ -207,7 +207,7 @@ object TacoCommand : BotCommand {
         val self = client.getSelf()
         reply(mCE.message) {
             author {
-                name = "${user.username}'s TacoShack Reminder Settings"
+                name = "${user.username}'s TacoShack entities.Reminder Settings"
                 icon = mCE.message.author?.avatar?.url
             }
             for (reminder in TacoReminderType.values()) {
@@ -216,7 +216,7 @@ object TacoCommand : BotCommand {
                     name = "${reminder.name.toLowerCase().capitalize()}${if (reminder.buy) " Boost" else ""}"
                     val r = reminder.prop.get(user.taco.tacoReminders)
                     value =
-                        "Enabled: ${LXVBot.getCheckmarkOrCross(r.enabled)}\nReminder Count: ${r.count}"
+                        "Enabled: ${LXVBot.getCheckmarkOrCross(r.enabled)}\nentities.Reminder Count: ${r.count}"
                 }
             }
             footer {

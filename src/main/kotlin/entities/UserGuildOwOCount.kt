@@ -1,3 +1,5 @@
+package entities
+
 import dev.kord.core.event.message.MessageCreateEvent
 import java.time.Instant
 import java.time.Year

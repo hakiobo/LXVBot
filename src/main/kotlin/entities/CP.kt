@@ -1,3 +1,5 @@
+package entities
+
 import dev.kord.common.Color
 import dev.kord.rest.builder.message.EmbedBuilder
 import org.bson.codecs.pojo.annotations.BsonId

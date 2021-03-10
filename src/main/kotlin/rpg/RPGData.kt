@@ -1,6 +1,6 @@
 package rpg
 
-import Reminder
+import entities.Reminder
 
 data class RPGData(
     val rpgReminders: MutableMap<String, Reminder> = hashMapOf(),

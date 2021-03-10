@@ -1,13 +1,13 @@
 package commands
 
 import LXVBot
-import LXVUser
-import UserGuildOwOCount
 import commands.utils.BotCommand
 import commands.utils.CommandCategory
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
+import entities.LXVUser
+import entities.UserGuildOwOCount
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.aggregate
 import java.time.Duration

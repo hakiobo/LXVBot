@@ -1,8 +1,8 @@
 package moderation
 
 import LXVBot
-import LXVUser
-import ServerData
+import entities.LXVUser
+import entities.ServerData
 import commands.utils.Argument
 import commands.utils.BotCommand
 import commands.utils.CommandCategory
