@@ -104,6 +104,7 @@ object RPGCommand : BotCommand {
             args.size >= 4 && args[1].toLowerCase() in adventureAliases && args[2].toLowerCase() in petAdvTypes
         },
         RPGReminderType("daily", listOf(), (23 * 60 + 50) * 60_000, true),
+        RPGReminderType("weekly", listOf(), ((6 * 24 + 23) * 60 + 50) * 60_000, true),
         RPGReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
         },
