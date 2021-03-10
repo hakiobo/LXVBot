@@ -153,8 +153,8 @@ object RPGCommand : BotCommand {
                         && args[2].toLowerCase() == "join"
             }
         },
-        RPGReminderType("miniboss", listOf("not"), 12 * 3600_000, true) { args ->
-            if (args.first().toLowerCase() == "miniboss") {
+        RPGReminderType("miniboss", listOf("not", "dungeon"), 12 * 3600_000, true) { args ->
+            if (args.first().toLowerCase() == "miniboss" || args.first().toLowerCase() == "dungeon") {
                 true
             } else {
                 args.size >= 4
