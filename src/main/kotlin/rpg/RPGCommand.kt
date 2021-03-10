@@ -109,7 +109,7 @@ object RPGCommand : BotCommand {
             args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
         },
         RPGReminderType("adventure", listOf("adv"), 3600_000, true),
-        RPGReminderType("training", listOf("tr", "ultraining"), 15 * 60_000 + 3_000, true),
+        RPGReminderType("training", listOf("tr", "ultraining", "ultr"), 15 * 60_000 + 3_000, true),
         RPGReminderType("quest", listOf("epic"), 6 * 3600_000, true) { args ->
             if (args.first().toLowerCase() == "quest") {
                 true
