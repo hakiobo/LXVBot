@@ -45,6 +45,8 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
         return
     }
     var user: User? = null
+    val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+    val lxvUser = getUserFromDB(Snowflake(userId), user, userCol)
     if (level >= min(CAMERA_ROLE_LEVEL, 10)) {
         user = client.getUser(Snowflake(userId))
         val member = user?.asMemberOrNull(mCE.guildId!!)
@@ -55,14 +57,15 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
         val curRoles = member.roleIds
 
 
-        if (level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in curRoles) {
+        if (level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in curRoles && !lxvUser.serverData.picBanned) {
             member.addRole(Snowflake(CAMERA_ROLE_ID), "They reached level $CAMERA_ROLE_LEVEL or higher in Mee6")
+        } else if (lxvUser.serverData.picBanned && Snowflake(CAMERA_ROLE_ID) in curRoles) {
+            member.removeRole(Snowflake(CAMERA_ROLE_ID), "User is banned from camera role")
         }
 
 
         if (level >= 10) {
             val rank = LEVEL_ROLE_IDS[if (level >= 100) 9 else (level / 10) - 1]
-
 
             for (role in LEVEL_ROLE_IDS) {
                 if (role == rank) {
@@ -77,10 +80,14 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
                     )
                 }
             }
+        } else {
+            for (role in LEVEL_ROLE_IDS) {
+                if (role in curRoles) {
+                    member.removeRole(role, "They didn't have the needed Mee6 level for this role")
+                }
+            }
         }
     }
 
-    val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-    getUserFromDB(Snowflake(userId), user, userCol)
     userCol.updateOne(LXVUser::_id eq userId, setValue(LXVUser::serverData / ServerData::mee6Level, level))
 }

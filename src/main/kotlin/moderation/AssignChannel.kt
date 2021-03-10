@@ -32,6 +32,10 @@ object AssignChannel : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
+        if(mCE.guildId?.value != LXVBot.LXV_SERVER_ID){
+            reply(mCE.message, "This only works in LXV")
+            return
+        }
         if (Permission.Administrator in mCE.member!!.getPermissions()) {
             if (args.size >= 2) {
                 val userId = LXVBot.getUserIdFromString(args[0])
