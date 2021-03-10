@@ -14,6 +14,8 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import moderation.AssignChannel
+import moderation.RemoveChannel
 import moderation.handleMee6LevelUpMessage
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -42,6 +44,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         ServersCommand,
         Invite,
         TacoCommand,
+        AssignChannel,
+        RemoveChannel,
     )
 
     suspend fun startup() {
@@ -65,8 +69,11 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.content.startsWith("$RPG_PREFIX ", true)) {
             handleRPGCommand(mCE)
         }
-        if(mCE.message.content.startsWith(TACO_SHACK_PREFIX, false)){
-            handleTacoCommand(mCE, mCE.message.content.drop(TACO_SHACK_PREFIX.length).trim().split(Pattern.compile("\\s+")))
+        if (mCE.message.content.startsWith(TACO_SHACK_PREFIX, false)) {
+            handleTacoCommand(
+                mCE,
+                mCE.message.content.drop(TACO_SHACK_PREFIX.length).trim().split(Pattern.compile("\\s+"))
+            )
         }
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
             handleCommand(mCE, mCE.message.content.drop(BOT_PREFIX.length).trim())
@@ -199,6 +206,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val ERYS_ID = 412812867348463636
         const val MEE6_ID = 159985870458322944
         const val LEVEL_UP_CHANNEL_ID = 763523136238780456
+        const val LXV_SERVER_ID = 714152739252338749
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 
@@ -215,6 +223,18 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                 } else {
                     s.drop(2).dropLast(1).toLongOrNull()
                 }
+            } else {
+                null
+            }
+        }
+
+        fun getChannelIdFromString(s: String?): Long? {
+            return if (s == null) {
+                null
+            } else if (s.toLongOrNull() != null) {
+                s.toLong()
+            } else if (s.startsWith("<#") && s.endsWith(">")) {
+                s.drop(2).dropLast(1).toLongOrNull()
             } else {
                 null
             }

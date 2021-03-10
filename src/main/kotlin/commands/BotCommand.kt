@@ -63,4 +63,5 @@ enum class CommandCategory(val category: String) {
     GUILD("Guild"),
     LXVBOT("Bot Related"),
     MISC("Miscellaneous"),
+    MODERATION("Moderation"),
 }
