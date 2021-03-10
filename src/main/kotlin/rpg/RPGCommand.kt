@@ -236,7 +236,7 @@ object RPGCommand : BotCommand {
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
                             reply(
                                 mCE.message,
-                                "RPG ${reminder.name.capitalize()} entities.Reminder ${if (enable) "En" else "Dis"}abled!"
+                                "RPG ${reminder.name.capitalize()} Reminder ${if (enable) "En" else "Dis"}abled!"
                             )
                         }
                     } else if (args[1].toLowerCase() == "all") {
@@ -354,7 +354,7 @@ object RPGCommand : BotCommand {
                     }
                     field {
                         inline = true
-                        name = "Available entities.Reminder Types"
+                        name = "Available Reminder Types"
                         value = reminderInfo.toString()
                     }
 
@@ -371,7 +371,7 @@ object RPGCommand : BotCommand {
                 val self = client.getSelf()
                 reply(mCE.message) {
                     author {
-                        name = "${user.username}'s RPG entities.Reminder Settings"
+                        name = "${user.username}'s RPG Reminder Settings"
                         icon = mCE.message.author?.avatar?.url
                     }
                     for (reminder in reminders) {
@@ -385,7 +385,7 @@ object RPGCommand : BotCommand {
                             }"
                             val r = user.rpg.rpgReminders[reminder.name]
                             value =
-                                "Enabled: ${LXVBot.getCheckmarkOrCross(r?.enabled ?: false)}\nentities.Reminder Count: ${r?.count ?: 0}"
+                                "Enabled: ${LXVBot.getCheckmarkOrCross(r?.enabled ?: false)}\nReminder Count: ${r?.count ?: 0}"
                         }
                     }
                     footer {
