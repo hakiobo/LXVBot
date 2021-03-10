@@ -61,7 +61,8 @@ object TacoCommand : BotCommand {
         }
     }
 
-    internal fun findTacoReminder(name: String): TacoReminderType? {
+    internal fun findTacoReminder(nameToFind: String): TacoReminderType? {
+        val name = nameToFind.toLowerCase()
         for (reminder in TacoReminderType.values()) {
             if (name in reminder.aliases || name == reminder.name.toLowerCase()) {
                 return reminder
