@@ -1,9 +1,9 @@
 package commands
 
 import LXVBot
-import commands.utils.BotCommand
-import commands.utils.CommandCategory
-import commands.utils.CommandUsage
+import commands.util.BotCommand
+import commands.util.CommandCategory
+import commands.util.CommandUsage
 import dev.kord.core.entity.Guild
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.flow.collect

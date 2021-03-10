@@ -1,8 +1,8 @@
 package commands
 
 import LXVBot
-import commands.utils.BotCommand
-import commands.utils.CommandCategory
+import commands.util.BotCommand
+import commands.util.CommandCategory
 import dev.kord.core.event.message.MessageCreateEvent
 
 object Github : BotCommand {

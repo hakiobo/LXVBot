@@ -1,7 +1,7 @@
 package commands
 
 import LXVBot
-import commands.utils.*
+import commands.util.*
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.CreationInfo
 import entities.CustomPatreon

@@ -3,7 +3,7 @@ package moderation
 import LXVBot
 import entities.LXVUser
 import entities.ServerData
-import commands.utils.*
+import commands.util.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Permission
 import dev.kord.common.entity.Snowflake

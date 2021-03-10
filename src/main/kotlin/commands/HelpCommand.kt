@@ -1,7 +1,7 @@
 package commands.meta
 
 import LXVBot
-import commands.utils.*
+import commands.util.*
 import dev.kord.common.Color
 import dev.kord.core.event.message.MessageCreateEvent
 import java.util.*

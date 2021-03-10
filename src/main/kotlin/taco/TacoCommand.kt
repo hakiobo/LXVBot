@@ -4,8 +4,9 @@ import LXVBot
 import entities.LXVUser
 import entities.Reminder
 import commands.meta.HelpCommand
-import commands.utils.*
+import commands.util.*
 import dev.kord.core.event.message.MessageCreateEvent
+import entities.StoredReminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.litote.kmongo.eq
@@ -60,7 +61,7 @@ object TacoCommand : BotCommand {
         }
     }
 
-    private fun findTacoReminder(name: String): TacoReminderType? {
+    internal fun findTacoReminder(name: String): TacoReminderType? {
         for (reminder in TacoReminderType.values()) {
             if (name in reminder.aliases || name == reminder.name.toLowerCase()) {
                 return reminder
@@ -246,11 +247,22 @@ object TacoCommand : BotCommand {
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 val userReminder = reminder.prop.get(user.taco.tacoReminders)
                 if (userReminder.enabled && (curTime - userReminder.lastUse) >= reminder.time) {
+                    val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
                     client.launch {
                         val new = userReminder.copy(lastUse = curTime, count = userReminder.count + 1)
                         userCol.updateOne(
                             LXVUser::_id eq user._id,
                             setValue(LXVUser::taco / TacoData::tacoReminders / reminder.prop, new)
+                        )
+                        reminderCol.insertOne(
+                            StoredReminder(
+                                mCE.message.id.value,
+                                curTime + reminder.time,
+                                "tacoshack",
+                                reminder.name,
+                                mCE.message.channelId.value,
+                                mCE.message.author!!.id.value,
+                            )
                         )
                         delay(reminder.time)
                         val check = reminder.prop.get(
@@ -267,6 +279,7 @@ object TacoCommand : BotCommand {
                                 true
                             )
                         }
+                        reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id.value)
                     }
                 }
             }

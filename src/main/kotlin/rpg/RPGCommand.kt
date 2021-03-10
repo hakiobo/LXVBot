@@ -4,9 +4,10 @@ import LXVBot
 import entities.LXVUser
 import entities.Reminder
 import commands.meta.HelpCommand
-import commands.utils.*
+import commands.util.*
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
+import entities.StoredReminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.litote.kmongo.eq
@@ -164,7 +165,7 @@ object RPGCommand : BotCommand {
         },
     )
 
-    private fun findReminder(args: List<String>, strict: Boolean = true): RPGReminderType? {
+    internal fun findReminder(args: List<String>, strict: Boolean = true): RPGReminderType? {
         val cmd = args.firstOrNull()?.toLowerCase() ?: return null
         for (reminder in reminders) {
             if (cmd == reminder.name || cmd in reminder.aliases) {
@@ -432,9 +433,20 @@ object RPGCommand : BotCommand {
 
             if (data?.enabled == true && (curTime - data.lastUse > dif)
             ) {
+                val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
                 client.launch {
                     user.rpg.rpgReminders[reminder.name] = Reminder(data.enabled, curTime, data.count + 1)
                     userCol.replaceOne(LXVUser::_id eq user._id, user)
+                    reminderCol.insertOne(
+                        StoredReminder(
+                            mCE.message.id.value,
+                            curTime + dif.roundToLong(),
+                            "rpg",
+                            reminder.name,
+                            mCE.message.channelId.value,
+                            mCE.message.author!!.id.value,
+                        )
+                    )
                     delay(dif.roundToLong())
                     val check = getUserFromDB(
                         mCE.message.author!!.id,
@@ -444,6 +456,7 @@ object RPGCommand : BotCommand {
                     if (check?.lastUse == curTime && check.enabled) {
                         reply(mCE.message, "RPG ${reminder.responseName(reminder, args)} cooldown is done", true)
                     }
+                    reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id.value)
                 }
             }
         }

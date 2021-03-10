@@ -1,7 +1,7 @@
 import commands.*
 import rpg.RPGCommand
 import commands.meta.HelpCommand
-import commands.utils.BotCommand
+import commands.util.BotCommand
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.MessageBehavior
@@ -9,10 +9,12 @@ import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.User
+import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import entities.LXVUser
+import entities.StoredReminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import moderation.AssignChannel
@@ -52,6 +54,67 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     )
 
     suspend fun startup() {
+        client.on<ReadyEvent> {
+            val p = client.rest.channel.createMessage(Snowflake(LXV_BOT_UPDATE_CHANNEL_ID)) {
+                content = "LXV Bot is online"
+            }
+            val curTime = p.id.timeStamp.toEpochMilli()
+            val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
+            val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+            val reminders = reminderCol.find().toList()
+            reminders.forEach {
+                client.launch {
+                    val msgTime = Snowflake(it.srcMsg).timeStamp.toEpochMilli()
+                    if (curTime < it.reminderTime) {
+                        delay(it.reminderTime - curTime)
+                    }
+                    val check = getUserFromDB(
+                        Snowflake(it.otherData),
+                        null,
+                        userCol
+                    )
+                    when (it.category) {
+                        "rpg" -> {
+                            val reminderSetting = check.rpg.rpgReminders[it.type]
+                            val reminder = RPGCommand.findReminder(listOf(it.type), false)
+                            if (reminderSetting == null || reminder == null) {
+                                println("wtf should not be null")
+                            } else {
+                                if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
+                                    client.rest.channel.createMessage(Snowflake(it.channelId)) {
+                                        messageReference = Snowflake(it.srcMsg)
+                                        content = "RPG ${
+                                            reminder.responseName(
+                                                reminder,
+                                                listOf(reminder.name)
+                                            )
+                                        } cooldown is done"
+                                    }
+                                }
+                            }
+
+                        }
+                        "tacoshack" -> {
+                            val reminder = TacoCommand.findTacoReminder(it.type)
+                            if (reminder == null) {
+                                println("wtf should not be null")
+                            } else {
+                                val reminderSetting = reminder.prop.get(check.taco.tacoReminders)
+                                if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
+                                    client.rest.channel.createMessage(Snowflake(it.channelId)) {
+                                        messageReference = Snowflake(it.srcMsg)
+                                        content =
+                                            "Taco Shack ${reminder.name.toLowerCase().capitalize()} cooldown is done"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    reminderCol.deleteOne(StoredReminder::srcMsg eq it.srcMsg)
+                }
+            }
+        }
+
         client.on<MessageCreateEvent> {
             client.launch {
                 handleMessage(this@on)
@@ -209,6 +272,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val ERYS_ID = 412812867348463636
         const val MEE6_ID = 159985870458322944
         const val LEVEL_UP_CHANNEL_ID = 763523136238780456
+        const val LXV_BOT_UPDATE_CHANNEL_ID = 816768818088116225
         const val LXV_SERVER_ID = 714152739252338749
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"

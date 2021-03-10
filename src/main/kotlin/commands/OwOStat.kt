@@ -2,7 +2,7 @@ package commands
 
 import LXVBot
 import LXVBot.Companion.getUserIdFromString
-import commands.utils.*
+import commands.util.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent

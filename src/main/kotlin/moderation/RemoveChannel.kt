@@ -3,10 +3,10 @@ package moderation
 import LXVBot
 import entities.LXVUser
 import entities.ServerData
-import commands.utils.Argument
-import commands.utils.BotCommand
-import commands.utils.CommandCategory
-import commands.utils.CommandUsage
+import commands.util.Argument
+import commands.util.BotCommand
+import commands.util.CommandCategory
+import commands.util.CommandUsage
 import dev.kord.common.entity.Permission
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
