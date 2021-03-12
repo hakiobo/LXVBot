@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import org.litote.kmongo.eq
 import java.util.regex.Pattern
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -480,6 +481,40 @@ object RPGCommand : BotCommand {
                 }
                 field?.name?.startsWith("Type `") == true -> {
                     reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
+                }
+                embed.footer?.text == "Type \"info\" to get information about pets\n" -> {
+                    var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }
+                    val actions = mutableListOf<String>()
+                    reply(mCE.message) {
+                        title = "Pet Taming Helper"
+                        color = Color(0x406da2)
+                        for (count in 1..6) {
+                            val hungerGain = min(hunger, 20)
+                            val happinessGain = min(100 - happiness, 10)
+                            if (hungerGain > happinessGain) {
+                                hunger -= hungerGain
+                                actions += "feed"
+                            } else {
+                                happiness += happinessGain
+                                actions += "pat"
+                            }
+                            val pct =
+                                (((happiness - hunger) * 10000) / 85)
+                                    .coerceAtLeast(0)
+                                    .coerceAtMost(10000)
+                                    .toString()
+                                    .padStart(3, '0')
+
+
+                            field {
+                                name = "$count action${if (count > 1) "s" else ""}: ${actions.joinToString(" ")}"
+                                value =
+                                    "**Estimated Happiness**: $happiness\n**Estimated Hunger**: $hunger\n**Estimated Catch Odds**: ${
+                                        pct.dropLast(2)
+                                    }.${pct.takeLast(2)}%"
+                            }
+                        }
+                    }
                 }
             }
         }
