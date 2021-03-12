@@ -280,6 +280,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val LEVEL_UP_CHANNEL_ID = 763523136238780456
         const val LXV_BOT_UPDATE_CHANNEL_ID = 816768818088116225
         const val LXV_SERVER_ID = 714152739252338749
+        const val RPG_PING_ROLE_ID = 795936961344831549
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 

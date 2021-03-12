@@ -5,6 +5,7 @@ import entities.LXVUser
 import entities.Reminder
 import commands.meta.HelpCommand
 import commands.util.*
+import dev.kord.common.Color
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.StoredReminder
@@ -226,7 +227,7 @@ object RPGCommand : BotCommand {
                             }
                             userCol.replaceOne(LXVUser::_id eq user._id, user)
                         } else {
-                            val enable = args[0] == "enable"
+                            val enable = args[0].toLowerCase() == "enable"
                             val setting = user.rpg.rpgReminders[reminder.name]
                             if (setting == null) {
                                 user.rpg.rpgReminders[reminder.name] = Reminder(enable)
@@ -258,7 +259,7 @@ object RPGCommand : BotCommand {
                                 "Reset All the Cooldowns!"
                             )
                         } else {
-                            val enable = args[0] == "enable"
+                            val enable = args[0].toLowerCase() == "enable"
                             for (rpgReminder in reminders) {
                                 if (rpgData[rpgReminder.name] == null) {
                                     rpgData[rpgReminder.name] = Reminder(enable)
@@ -466,8 +467,20 @@ object RPGCommand : BotCommand {
     internal suspend fun LXVBot.handleRPGMessage(mCE: MessageCreateEvent) {
         if (mCE.message.embeds.isNotEmpty()) {
             val embed = mCE.message.embeds.first()
-            if (embed.fields.firstOrNull()?.value?.startsWith("The first player who types the following sentence will get") == true) {
-                sendMessage(mCE.message.channel, embed.fields.first().value.split("**").getOrNull(1) ?: "Nope")
+            val field = embed.fields.firstOrNull()
+            when {
+                field?.value?.startsWith("The first player who types the following sentence will get") == true -> {
+                    reply(mCE.message) {
+                        description = field.value.split("**").getOrNull(1)
+                        color = if (description == null) Color(0xFF0000) else Color(0xFFFFFF)
+                    }
+                }
+                field?.value?.startsWith("Type **") == true -> {
+                    reply(mCE.message, "<&@${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}")
+                }
+                field?.name?.startsWith("Type `") == true -> {
+                    reply(mCE.message, "<&@${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
+                }
             }
         }
     }
