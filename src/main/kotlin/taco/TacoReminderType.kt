@@ -20,4 +20,9 @@ enum class TacoReminderType(
     MUSIC(listOf("music"), TacoReminder::music, 4 * 3600_000L, true),
     AIRPLANE(listOf("airplane"), TacoReminder::airplane, 24 * 3600_000L, true),
     CHEF(listOf("chef"), TacoReminder::chef, 4 * 3600_000L, true),
+    CHAIRS(listOf("chairs"), TacoReminder::chairs, 8 * 3600_000L, true),
+    SAIL(listOf("sail"), TacoReminder::sail, 6 * 3600_000L, true),
+    CONCERT(listOf("concert"), TacoReminder::concert, 4 * 3600_000L, true),
+    TOURS(listOf("tours"), TacoReminder::tours, 24 * 3600_000L, true),
+    HAMMOCK(listOf("hammock"), TacoReminder::hammock, 4 * 3600_000L, true),
 }

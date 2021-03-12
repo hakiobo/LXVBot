@@ -14,4 +14,9 @@ data class TacoReminder(
     val music: Reminder = Reminder(),
     val airplane: Reminder = Reminder(),
     val chef: Reminder = Reminder(),
+    val chairs: Reminder = Reminder(),
+    val sail: Reminder = Reminder(),
+    val concert: Reminder = Reminder(),
+    val tours: Reminder = Reminder(),
+    val hammock: Reminder = Reminder(),
 )

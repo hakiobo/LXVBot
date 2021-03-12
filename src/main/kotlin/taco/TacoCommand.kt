@@ -94,6 +94,11 @@ object TacoCommand : BotCommand {
                 music = userReminder.music.copy(enabled = enable),
                 airplane = userReminder.airplane.copy(enabled = enable),
                 chef = userReminder.chef.copy(enabled = enable),
+                chairs = userReminder.chairs.copy(enabled = enable),
+                sail = userReminder.sail.copy(enabled = enable),
+                concert = userReminder.concert.copy(enabled = enable),
+                tours = userReminder.tours.copy(enabled = enable),
+                hammock = userReminder.hammock.copy(enabled = enable),
             )
             userCol.updateOne(
                 LXVUser::_id eq user._id,
@@ -154,6 +159,11 @@ object TacoCommand : BotCommand {
                 music = userReminder.music.copy(lastUse = 0L),
                 airplane = userReminder.airplane.copy(lastUse = 0L),
                 chef = userReminder.chef.copy(lastUse = 0L),
+                chairs = userReminder.chairs.copy(lastUse = 0L),
+                sail = userReminder.sail.copy(lastUse = 0L),
+                concert = userReminder.concert.copy(lastUse = 0L),
+                tours = userReminder.tours.copy(lastUse = 0L),
+                hammock = userReminder.hammock.copy(lastUse = 0L),
             )
             userCol.updateOne(
                 LXVUser::_id eq user._id,
