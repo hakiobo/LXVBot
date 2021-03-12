@@ -26,6 +26,7 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import rpg.RPGCommand.handleRPGCommand
+import rpg.RPGCommand.handleRPGMessage
 import taco.TacoCommand
 import taco.TacoCommand.handleTacoCommand
 import java.time.ZoneId
@@ -51,6 +52,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         AssignChannel,
         RemoveChannel,
         PicBan,
+        ReadEmbed,
     )
 
     suspend fun startup() {
@@ -126,6 +128,9 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
         if (mCE.message.author?.id?.value == MEE6_ID && mCE.message.channelId.value == LEVEL_UP_CHANNEL_ID) {
             handleMee6LevelUpMessage(mCE)
+        }
+        if (mCE.message.author?.id?.value == RPG_BOT_ID) {
+            handleRPGMessage(mCE)
         }
         if (mCE.message.author?.isBot == true) return
         if (mCE.guildId == null) {
@@ -271,6 +276,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val HAKI_ID = 292483348738080769
         const val ERYS_ID = 412812867348463636
         const val MEE6_ID = 159985870458322944
+        const val RPG_BOT_ID = 555955826880413696
         const val LEVEL_UP_CHANNEL_ID = 763523136238780456
         const val LXV_BOT_UPDATE_CHANNEL_ID = 816768818088116225
         const val LXV_SERVER_ID = 714152739252338749

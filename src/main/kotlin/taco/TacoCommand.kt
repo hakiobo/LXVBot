@@ -126,7 +126,7 @@ object TacoCommand : BotCommand {
             } else {
                 reply(
                     mCE.message,
-                    "That's not a valid Taco Shack Reminder. Use `${LXVBot.BOT_PREFIX}${name} info to see a list of Valid Reminders`"
+                    "That's not a valid Taco Shack Reminder. Use `${LXVBot.BOT_PREFIX}$name info to see a list of Valid Reminders`"
                 )
             }
         }
@@ -182,7 +182,7 @@ object TacoCommand : BotCommand {
             } else {
                 reply(
                     mCE.message,
-                    "That's not a valid Taco Shack Reminder. Use `${LXVBot.BOT_PREFIX}${name} info to see a list of Valid Reminders`"
+                    "That's not a valid Taco Shack Reminder. Use `${LXVBot.BOT_PREFIX}$name info to see a list of Valid Reminders`"
                 )
             }
         }

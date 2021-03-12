@@ -462,4 +462,13 @@ object RPGCommand : BotCommand {
             }
         }
     }
+
+    internal suspend fun LXVBot.handleRPGMessage(mCE: MessageCreateEvent) {
+        if (mCE.message.embeds.isNotEmpty()) {
+            val embed = mCE.message.embeds.first()
+            if (embed.fields.firstOrNull()?.value?.startsWith("The first player who types the following sentence will get") == true) {
+                sendMessage(mCE.message.channel, embed.fields.first().value.split("**").getOrNull(1) ?: "Nope")
+            }
+        }
+    }
 }
