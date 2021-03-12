@@ -476,10 +476,10 @@ object RPGCommand : BotCommand {
                     }
                 }
                 field?.value?.startsWith("Type **") == true -> {
-                    reply(mCE.message, "<&@${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}")
+                    reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}")
                 }
                 field?.name?.startsWith("Type `") == true -> {
-                    reply(mCE.message, "<&@${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
+                    reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
                 }
             }
         }
