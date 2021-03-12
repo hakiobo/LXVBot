@@ -6,7 +6,9 @@ import entities.Reminder
 import commands.meta.HelpCommand
 import commands.util.*
 import dev.kord.common.Color
+import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.Embed
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.StoredReminder
 import kotlinx.coroutines.delay
@@ -465,58 +467,63 @@ object RPGCommand : BotCommand {
         }
     }
 
-    internal suspend fun LXVBot.handleRPGMessage(mCE: MessageCreateEvent) {
-        if (mCE.message.embeds.isNotEmpty()) {
-            val embed = mCE.message.embeds.first()
-            val field = embed.fields.firstOrNull()
-            when {
-                field?.value?.startsWith("The first player who types the following sentence will get") == true -> {
-                    reply(mCE.message) {
-                        description = field.value.split("**").getOrNull(1)
-                        color = if (description == null) Color(0xFF0000) else Color(0xFFFFFF)
-                    }
+    internal suspend fun LXVBot.handleEmbed(mCE: MessageCreateEvent, embed: Embed) {
+        val field = embed.fields.firstOrNull()
+        when {
+            field?.value?.startsWith("The first player who types the following sentence will get") == true -> {
+                val s = field.value.split("**").getOrNull(1)
+                reply(mCE.message, s ?: "<@${LXVBot.HAKI_ID}>") {
+                    description = s
+                    color = if (description == null) Color(0xFF0000) else Color(0xFFFFFF)
                 }
-                field?.value?.startsWith("Type **") == true -> {
-                    reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}")
-                }
-                field?.name?.startsWith("Type `") == true -> {
-                    reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
-                }
-                embed.footer?.text == "Type \"info\" to get information about pets\n" -> {
-                    var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }
-                    val actions = mutableListOf<String>()
-                    reply(mCE.message) {
-                        title = "Pet Taming Helper"
-                        color = Color(0x406da2)
-                        for (count in 1..6) {
-                            val hungerGain = min(hunger, 20)
-                            val happinessGain = min(100 - happiness, 10)
-                            if (hungerGain > happinessGain) {
-                                hunger -= hungerGain
-                                actions += "feed"
-                            } else {
-                                happiness += happinessGain
-                                actions += "pat"
-                            }
-                            val pct =
-                                (((happiness - hunger) * 10000) / 85)
-                                    .coerceAtLeast(0)
-                                    .coerceAtMost(10000)
-                                    .toString()
-                                    .padStart(3, '0')
+            }
+            field?.value?.startsWith("Type **") == true -> {
+                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}")
+            }
+            field?.name?.startsWith("Type `") == true -> {
+                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
+            }
+            embed.footer?.text == "Type \"info\" to get information about pets" -> {
+                var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }
+                val actions = mutableListOf<String>()
+                reply(mCE.message) {
+                    title = "Pet Taming Helper"
+                    color = Color(0x406da2)
+                    for (count in 1..6) {
+                        val hungerGain = min(hunger, 20)
+                        val happinessGain = min(100 - happiness, 10)
+                        if (hungerGain > happinessGain) {
+                            hunger -= hungerGain
+                            actions += "feed"
+                        } else {
+                            happiness += happinessGain
+                            actions += "pat"
+                        }
+                        val pct =
+                            (((happiness - hunger) * 10000) / 85)
+                                .coerceAtLeast(0)
+                                .coerceAtMost(10000)
+                                .toString()
+                                .padStart(3, '0')
 
 
-                            field {
-                                name = "$count action${if (count > 1) "s" else ""}: ${actions.joinToString(" ")}"
-                                value =
-                                    "**Estimated Happiness**: $happiness\n**Estimated Hunger**: $hunger\n**Estimated Catch Odds**: ${
-                                        pct.dropLast(2)
-                                    }.${pct.takeLast(2)}%"
-                            }
+                        field {
+                            name = actions.joinToString(" ")
+                            value =
+                                "Estimated Happiness: $happiness\nEstimated Hunger: $hunger\nEstimated Catch Odds: **${
+                                    pct.dropLast(2)
+                                }.${pct.takeLast(2)}%**"
+                            inline = true
                         }
                     }
                 }
             }
+        }
+    }
+
+    internal suspend fun LXVBot.handleRPGMessage(mCE: MessageCreateEvent) {
+        if (mCE.message.embeds.isNotEmpty()) {
+            handleEmbed(mCE, mCE.message.embeds.first())
         }
     }
 }

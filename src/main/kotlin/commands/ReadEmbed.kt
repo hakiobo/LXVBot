@@ -3,7 +3,13 @@ package commands
 import LXVBot
 import commands.util.*
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.cache.data.EmbedData
+import dev.kord.core.entity.Embed
+import dev.kord.core.entity.Message
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.message.EmbedBuilder
+import rpg.RPGCommand
+import rpg.RPGCommand.handleEmbed
 
 object ReadEmbed : BotCommand {
     override val name: String
@@ -26,8 +32,12 @@ object ReadEmbed : BotCommand {
             }
             val msg = client.rest.channel.getMessage(mCE.message.channelId, Snowflake(id))
             if (msg.embeds.isNotEmpty()) {
+                if (msg.author.id.value == LXVBot.RPG_BOT_ID) {
+                    handleEmbed(mCE, Embed(EmbedData.from(msg.embeds.first()), client))
+                } else {
+                    reply(mCE.message, "```\n${msg.embeds.first()}\n```")
+                }
                 println(msg.embeds.first())
-                reply(mCE.message, "```\n${msg.embeds.first()}\n```")
             }
         } else {
             reply(mCE.message, "haki only")
