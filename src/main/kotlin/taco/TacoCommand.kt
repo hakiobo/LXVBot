@@ -53,7 +53,8 @@ object TacoCommand : BotCommand {
         } else {
             when (args.first().toLowerCase()) {
                 "enable", "disable" -> handleEnableDisableSubCommand(mCE, args.map { it.toLowerCase() })
-                "reset" -> handleResetSubcommand(mCE,  args.map { it.toLowerCase() })
+                "reset" -> handleResetSubcommand(mCE, args.map { it.toLowerCase() })
+                "patreon" -> handlePatreonSubcommand(mCE, args.map { it.toLowerCase() })
                 "info" -> handleInfoSubcommand(mCE)
                 "status", "settings", "stats", "stat" -> handleStatusSubcommand(mCE)
                 else -> reply(mCE.message, "Not a valid $name subcommand")
@@ -198,6 +199,18 @@ object TacoCommand : BotCommand {
         }
     }
 
+    private suspend fun LXVBot.handlePatreonSubcommand(mCE: MessageCreateEvent, args: List<String>) {
+        val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+        val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+        if (args.size == 1) {
+            reply(mCE.message, "Current Taco Patreon Level is ${user.taco.patreonLevel.capitalize()}")
+        } else {
+            val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].toLowerCase())
+            userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::patreonLevel, newLevel.id))
+            reply(mCE.message, "Taco Patreon set to ${newLevel.id.capitalize()}")
+        }
+    }
+
     private suspend fun LXVBot.handleInfoSubcommand(mCE: MessageCreateEvent) {
         val self = client.getSelf()
         reply(mCE.message) {
@@ -257,7 +270,8 @@ object TacoCommand : BotCommand {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 val userReminder = reminder.prop.get(user.taco.tacoReminders)
-                if (userReminder.enabled && (curTime - userReminder.lastUse) >= reminder.time) {
+                val cooldown = reminder.getCooldown(TacoPatreonLevel.findPatreonLevel(user.taco.patreonLevel))
+                if (userReminder.enabled && (curTime - userReminder.lastUse) >= cooldown) {
                     val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
                     client.launch {
                         val new = userReminder.copy(lastUse = curTime, count = userReminder.count + 1)
@@ -268,14 +282,14 @@ object TacoCommand : BotCommand {
                         reminderCol.insertOne(
                             StoredReminder(
                                 mCE.message.id.value,
-                                curTime + reminder.time,
+                                curTime + cooldown,
                                 "tacoshack",
                                 reminder.name,
                                 mCE.message.channelId.value,
                                 mCE.message.author!!.id.value,
                             )
                         )
-                        delay(reminder.time)
+                        delay(cooldown)
                         val check = reminder.prop.get(
                             getUserFromDB(
                                 mCE.message.author!!.id,

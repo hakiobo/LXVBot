@@ -6,11 +6,19 @@ import kotlin.reflect.KProperty1
 enum class TacoReminderType(
     val aliases: List<String>,
     val prop: KProperty1<TacoReminder, Reminder>,
-    val time: Long,
+    private val time: Long,
     val buy: Boolean = false
 ) {
-    TIP(listOf("tip", "tips", "t"), TacoReminder::tip, 5 * 60_000L),
-    WORK(listOf("work", "w", "cook"), TacoReminder::work, 10 * 60_000L),
+    TIP(listOf("tip", "tips", "t"), TacoReminder::tip, 5 * 60_000L) {
+        override fun getCooldown(settings: TacoPatreonLevel): Long {
+            return super.getCooldown(settings) - settings.tipReduction
+        }
+    },
+    WORK(listOf("work", "w", "cook"), TacoReminder::work, 10 * 60_000L) {
+        override fun getCooldown(settings: TacoPatreonLevel): Long {
+            return super.getCooldown(settings) - settings.workReduction
+        }
+    },
     OVERTIME(listOf("overtime", "ot"), TacoReminder::overtime, 30 * 60_000L),
     DAILY(listOf("daily", "d"), TacoReminder::daily, 24 * 3600_000L),
     CLEAN(listOf("clean"), TacoReminder::clean, 24 * 3600_000L),
@@ -25,4 +33,9 @@ enum class TacoReminderType(
     CONCERT(listOf("concert"), TacoReminder::concert, 4 * 3600_000L, true),
     TOURS(listOf("tours"), TacoReminder::tours, 24 * 3600_000L, true),
     HAMMOCK(listOf("hammock"), TacoReminder::hammock, 4 * 3600_000L, true),
+    ;
+
+    open fun getCooldown(settings: TacoPatreonLevel): Long {
+        return time
+    }
 }
