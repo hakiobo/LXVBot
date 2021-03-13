@@ -49,7 +49,7 @@ enum class RPGReminderType(
             }
         }
     },
-    DUEL(listOf("duel"), 2 * 3600_000, false),
+    DUEL(listOf("duel"), 2 * 3600_000, false, "<a:duel:820364624809558068>"),
     WORK(
         listOf(
             "work",
@@ -76,7 +76,7 @@ enum class RPGReminderType(
             return args.first().capitalize()
         }
     },
-    HORSE(listOf("horse"), 24 * 3600_000, true) {
+    HORSE(listOf("horse"), 24 * 3600_000, true, "<a:horses:820368968635121684>") {
         override fun getResponseName(args: List<String>): String {
             return "Horse Breeding/Race"
         }
@@ -99,7 +99,7 @@ enum class RPGReminderType(
         }
 
     },
-    ARENA(listOf("arena", "big"), 24 * 3600_000, true) {
+    ARENA(listOf("arena", "big"), 24 * 3600_000, true, "<a:arena:820366824562360392>") {
         override fun validate(args: List<String>): Boolean {
             return if (args.first().toLowerCase() == "arena") {
                 true
