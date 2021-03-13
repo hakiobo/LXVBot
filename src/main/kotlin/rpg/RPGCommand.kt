@@ -6,14 +6,15 @@ import entities.Reminder
 import commands.meta.HelpCommand
 import commands.util.*
 import dev.kord.common.Color
-import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Embed
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.StoredReminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.litote.kmongo.div
 import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 import java.util.regex.Pattern
 import kotlin.math.max
 import kotlin.math.min
@@ -65,131 +66,9 @@ object RPGCommand : BotCommand {
             ),
         )
 
-    private val lootboxTypes = listOf("c", "common", "u", "uncommon", "r", "rare", "ep", "epic", "ed", "edgy")
-    private val lootboxAliases = listOf("lb", "lootbox")
-    private val adventureAliases = listOf("adv", "adventure")
-    private val petAdvTypes = listOf("find", "learn", "drill")
     private val togetherAliases = listOf("together", "t")
     private val hardmodeAliases = listOf("hardmode", "h")
-    private val workAliases = listOf(
-        "chop",
-        "axe",
-        "bowsaw",
-        "chainsaw",
-        "fish",
-        "net",
-        "boat",
-        "bigboat",
-        "pickup",
-        "ladder",
-        "tractor",
-        "greenhouse",
-        "mine",
-        "pickaxe",
-        "drill",
-        "dynamite"
-    )
-    private val patreonLevels = listOf(
-        RPGPatreonLevel("regular", listOf("donator", "basic", "10%", "10", "0.9"), 0.9),
-        RPGPatreonLevel("epic", listOf("20%", "20", "0.8"), 0.8),
-        RPGPatreonLevel("super", listOf("35%", "35", "0.65"), 0.65),
-        RPGPatreonLevel("none", listOf("0%", "0", "0.0"), 1.0),
-    )
 
-    private val reminders = listOf(
-        RPGReminderType("hunt", listOf(), 60_000, true, { args ->
-            if (args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")) {
-                "Hunt Together"
-            } else {
-                name.capitalize()
-            }
-        }),
-        RPGReminderType("pet", listOf("pets"), 4 * 3600_000, false, { "Pet Adventure" }) { args ->
-            args.size >= 4 && args[1].toLowerCase() in adventureAliases && args[2].toLowerCase() in petAdvTypes
-        },
-        RPGReminderType("daily", listOf(), (23 * 60 + 50) * 60_000, true),
-        RPGReminderType("weekly", listOf(), ((6 * 24 + 23) * 60 + 50) * 60_000, true),
-        RPGReminderType("buy", listOf("lootbox", "lb"), 3 * 3600_000, false, { "Buy Lootbox" }) { args ->
-            args.size >= 3 && args[0].toLowerCase() == "buy" && args[1].toLowerCase() in lootboxTypes && args[2].toLowerCase() in lootboxAliases
-        },
-        RPGReminderType("adventure", listOf("adv"), 3600_000, true),
-        RPGReminderType("training", listOf("tr", "ultraining", "ultr"), 15 * 60_000 + 3_000, true),
-        RPGReminderType("quest", listOf("epic"), 6 * 3600_000, true) { args ->
-            if (args.first().toLowerCase() == "quest") {
-                true
-            } else {
-                args.size >= 2 && args.first().toLowerCase() == "epic" && args[1].toLowerCase() == "quest"
-            }
-        },
-        RPGReminderType("duel", listOf(), 2 * 3600_000, false),
-        RPGReminderType(
-            "work",
-            workAliases,
-            300_000,
-            true,
-            { it.first().capitalize() }
-        ) { args ->
-            args.first().toLowerCase() in workAliases
-        },
-        RPGReminderType("horse", listOf(), 24 * 3600_000, true, { "Horse Breeding/Race" }) { args ->
-            if (args.size < 2) {
-                false
-            } else {
-                if (args[1].toLowerCase() == "race") {
-                    true
-                } else if (args.size >= 3) {
-                    args[2].toLowerCase() in listOf(
-                        "breed",
-                        "breeding"
-                    ) && args[3].toLongOrNull() == null && LXVBot.getUserIdFromString(args[3]) != null
-                } else {
-                    false
-                }
-            }
-        },
-        RPGReminderType("arena", listOf("big"), 24 * 3600_000, true) { args ->
-            if (args.first().toLowerCase() == "arena") {
-                true
-            } else {
-                args.size >= 3
-                        && args.first().toLowerCase() == "big"
-                        && args[1].toLowerCase() == "arena"
-                        && args[2].toLowerCase() == "join"
-            }
-        },
-        RPGReminderType("miniboss", listOf("not", "dungeon"), 12 * 3600_000, true) { args ->
-            if (args.first().toLowerCase() == "miniboss" || args.first().toLowerCase() == "dungeon") {
-                true
-            } else {
-                args.size >= 4
-                        && args.first().toLowerCase() == "not"
-                        && args[1].toLowerCase() == "so"
-                        && args[2].toLowerCase() == "mini"
-                        && args[3].toLowerCase() == "boss"
-            }
-        },
-    )
-
-    internal fun findReminder(args: List<String>, strict: Boolean = true): RPGReminderType? {
-        val cmd = args.firstOrNull()?.toLowerCase() ?: return null
-        for (reminder in reminders) {
-            if (cmd == reminder.name || cmd in reminder.aliases) {
-                if (!strict || reminder.validator(args)) {
-                    return reminder
-                }
-            }
-        }
-        return null
-    }
-
-    private fun findPatreonLevel(p: String): RPGPatreonLevel {
-        for (level in patreonLevels) {
-            if (p == level.name || p in level.aliases) {
-                return level
-            }
-        }
-        return patreonLevels.last()
-    }
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         suspend fun err(msg: String = "") {
@@ -205,79 +84,9 @@ object RPGCommand : BotCommand {
             return
         }
         when (args[0].toLowerCase()) {
-            "enable", "disable", "reset" -> {
-                if (args.size < 2) err("Not enough args for ${args[0]}") else {
-                    val reminder = findReminder(listOf(args[1]), false)
-                    if (reminder != null) {
-                        val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                        val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
-                        if (args[0] == "reset") {
-                            val setting = user.rpg.rpgReminders[reminder.name]
-                            if (setting == null) {
-                                user.rpg.rpgReminders[reminder.name] = Reminder(true)
-                                mCE.message.reply {
-                                    content = "Reset and Enabled!"
-                                    allowedMentions {
-                                        repliedUser = false
-                                    }
-                                }
-                            } else {
-                                user.rpg.rpgReminders[reminder.name] = setting.copy(lastUse = 0L)
-                                reply(
-                                    mCE.message,
-                                    "Reset the Cooldown!"
-                                )
-                            }
-                            userCol.replaceOne(LXVUser::_id eq user._id, user)
-                        } else {
-                            val enable = args[0].toLowerCase() == "enable"
-                            val setting = user.rpg.rpgReminders[reminder.name]
-                            if (setting == null) {
-                                user.rpg.rpgReminders[reminder.name] = Reminder(enable)
-
-                            } else {
-                                user.rpg.rpgReminders[reminder.name] = setting.copy(enabled = enable)
-                            }
-                            userCol.replaceOne(LXVUser::_id eq user._id, user)
-                            reply(
-                                mCE.message,
-                                "RPG ${reminder.name.capitalize()} Reminder ${if (enable) "En" else "Dis"}abled!"
-                            )
-                        }
-                    } else if (args[1].toLowerCase() == "all") {
-                        val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                        val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
-                        val rpgData = user.rpg.rpgReminders
-                        if (args[0].toLowerCase() == "reset") {
-                            for (rpgReminder in reminders) {
-                                if (rpgData[rpgReminder.name] == null) {
-                                    rpgData[rpgReminder.name] = Reminder()
-                                } else {
-                                    rpgData[rpgReminder.name] = rpgData[rpgReminder.name]!!.copy(lastUse = 0L)
-                                }
-                            }
-                            userCol.replaceOne(LXVUser::_id eq user._id, user)
-                            reply(
-                                mCE.message,
-                                "Reset All the Cooldowns!"
-                            )
-                        } else {
-                            val enable = args[0].toLowerCase() == "enable"
-                            for (rpgReminder in reminders) {
-                                if (rpgData[rpgReminder.name] == null) {
-                                    rpgData[rpgReminder.name] = Reminder(enable)
-                                } else {
-                                    rpgData[rpgReminder.name] = rpgData[rpgReminder.name]!!.copy(enabled = enable)
-                                }
-                            }
-                            userCol.replaceOne(LXVUser::_id eq user._id, user)
-                            reply(mCE.message, "All Rpg Reminders ${if (enable) "En" else "Dis"}abled!")
-
-                        }
-                    } else {
-                        err("Could not find reminder type")
-                    }
-                }
+            "enable", "disable" -> handleEnableDisableSubcommand(mCE, args.map { it.toLowerCase() })
+            "reset" -> {
+                handleResetSubcommand(mCE, args.map { it.toLowerCase() })
             }
             "patreon", "p" -> {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
@@ -291,7 +100,7 @@ object RPGCommand : BotCommand {
                         }
                     }
                 } else {
-                    val new = findPatreonLevel(args[1].toLowerCase())
+                    val new = RPGPatreonLevel.findPatreonLevel(args[1].toLowerCase())
 
                     val newUser = user.copy(rpg = user.rpg.copy(patreonMult = new.multiplier))
                     userCol.replaceOne(LXVUser::_id eq user._id, newUser)
@@ -316,7 +125,7 @@ object RPGCommand : BotCommand {
                         }
                     }
                 } else {
-                    val new = findPatreonLevel(args[1].toLowerCase())
+                    val new = RPGPatreonLevel.findPatreonLevel(args[1].toLowerCase())
                     val newUser = user.copy(rpg = user.rpg.copy(partnerPatreon = new.multiplier))
                     userCol.replaceOne(LXVUser::_id eq user._id, newUser)
                     mCE.message.reply {
@@ -331,21 +140,14 @@ object RPGCommand : BotCommand {
             "info" -> {
                 val reminderInfo = StringBuilder()
                 val patreonInfo = StringBuilder()
-                for (reminder in reminders) {
-                    reminderInfo.append(
-                        "${reminder.name.capitalize()} - ${
-                            reminder.responseName(
-                                reminder,
-                                listOf(reminder.name)
-                            )
-                        }\n"
-                    )
+                for (reminder in RPGReminderType.values()) {
+                    reminderInfo.append(reminder.getFormattedName())
                     if (reminder.aliases.isNotEmpty()) {
                         reminderInfo.append("Aliases: ${reminder.aliases.joinToString(", ")}\n")
                     }
                     reminderInfo.append("\n")
                 }
-                for (level in patreonLevels) {
+                for (level in RPGPatreonLevel.values()) {
                     patreonInfo.append("${level.name.capitalize()}: ${(100 * (1 - level.multiplier)).roundToInt()}% Reduced Cooldowns\n")
                     patreonInfo.append("Aliases: ${level.aliases.joinToString(", ")}\n\n")
                 }
@@ -379,16 +181,11 @@ object RPGCommand : BotCommand {
                         name = "${user.username}'s RPG Reminder Settings"
                         icon = mCE.message.author?.avatar?.url
                     }
-                    for (reminder in reminders) {
+                    for (reminder in RPGReminderType.values()) {
                         field {
                             inline = true
-                            name = "${reminder.name.capitalize()} - ${
-                                reminder.responseName(
-                                    reminder,
-                                    listOf(reminder.name)
-                                )
-                            }"
-                            val r = user.rpg.rpgReminders[reminder.name]
+                            name = reminder.getFormattedName()
+                            val r = user.rpg.rpgReminders[reminder.id]
                             value =
                                 "Enabled: ${LXVBot.getCheckmarkOrCross(r?.enabled ?: false)}\nReminder Count: ${r?.count ?: 0}"
                         }
@@ -407,22 +204,111 @@ object RPGCommand : BotCommand {
         }
     }
 
+    private suspend fun LXVBot.handleResetSubcommand(mCE: MessageCreateEvent, args: List<String>) {
+        if (args.size < 2) {
+            reply(mCE.message, "You need to specify which reminder you're resetting")
+            return
+        }
+        val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+        if (args[1] == "all") {
+            val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+            val rpgData = user.rpg.rpgReminders
+            for (rpgReminder in RPGReminderType.values()) {
+                if (rpgData[rpgReminder.id] == null) {
+                    rpgData[rpgReminder.id] = Reminder()
+                } else {
+                    rpgData[rpgReminder.id] =
+                        rpgData[rpgReminder.id]!!.copy(lastUse = 0L)
+                }
+            }
+            userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::rpg / RPGData::rpgReminders, rpgData))
+            reply(
+                mCE.message,
+                "Reset All the Cooldowns!"
+            )
+        } else {
+            val reminder = RPGReminderType.findReminder(args[1])
+            if (reminder != null) {
+                val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+                val setting = user.rpg.rpgReminders[reminder.id]
+                if (setting == null) {
+                    user.rpg.rpgReminders[reminder.id] = Reminder(true)
+                    reply(mCE.message, "Reset and Enabled")
+                } else {
+                    user.rpg.rpgReminders[reminder.id] = setting.copy(lastUse = 0L)
+                    reply(
+                        mCE.message,
+                        "Reset the Cooldown!"
+                    )
+                }
+                userCol.updateOne(
+                    LXVUser::_id eq user._id,
+                    setValue(LXVUser::rpg / RPGData::rpgReminders, user.rpg.rpgReminders)
+                )
+            } else {
+                reply(mCE.message, "Could not find that RPG reminder")
+            }
+        }
+    }
+
+    private suspend fun LXVBot.handleEnableDisableSubcommand(mCE: MessageCreateEvent, args: List<String>) {
+        if (args.size < 2) {
+            reply(mCE.message, "You need to specify which reminder you're editing")
+            return
+        }
+        val enable = args[0] == "enable"
+        val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+
+        if (args[1] == "all") {
+            val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+            val rpgData = user.rpg.rpgReminders
+
+            for (rpgReminder in RPGReminderType.values()) {
+                if (rpgData[rpgReminder.id] == null) {
+                    rpgData[rpgReminder.id] = Reminder(enable)
+                } else {
+                    rpgData[rpgReminder.id] = rpgData[rpgReminder.id]!!.copy(enabled = enable)
+                }
+            }
+            userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::rpg / RPGData::rpgReminders, rpgData))
+            reply(mCE.message, "All Rpg Reminders ${if (enable) "En" else "Dis"}abled!")
+        } else {
+            val reminder = RPGReminderType.findReminder(args[1])
+            if (reminder != null) {
+                val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
+                val setting = user.rpg.rpgReminders[reminder.id]
+                if (setting == null) {
+                    user.rpg.rpgReminders[reminder.id] = Reminder(enable)
+                } else {
+                    user.rpg.rpgReminders[reminder.id] = setting.copy(enabled = enable)
+                }
+                userCol.replaceOne(LXVUser::_id eq user._id, user)
+                reply(
+                    mCE.message,
+                    "RPG ${reminder.getFormattedName()} Reminder ${if (enable) "En" else "Dis"}abled!"
+                )
+            } else {
+                reply(mCE.message, "Could not find that RPG reminder type")
+            }
+        }
+    }
+
     internal suspend fun LXVBot.handleRPGCommand(mCE: MessageCreateEvent) {
         val args = run {
             val a = mCE.message.content.split(Pattern.compile("\\s+")).drop(1)
             if (a.firstOrNull()?.toLowerCase() == "ascended") {
-                a.drop(1)
+                a.drop(1).map { it.toLowerCase() }
             } else {
-                a
+                a.map { it.toLowerCase() }
             }
         }
-        val reminder = findReminder(args)
+        val reminder = RPGReminderType.findValidReminder(args)
         if (reminder != null) {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
-            val data = user.rpg.rpgReminders[reminder.name]
+            val data = user.rpg.rpgReminders[reminder.id]
             val curTime = mCE.message.id.timeStamp.toEpochMilli()
-            val dif = if (reminder.name == "hunt") {
+            val dif = if (reminder.id == "hunt") {
                 if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
                 } else if (args.drop(1).firstOrNull()?.toLowerCase() in hardmodeAliases
@@ -440,14 +326,14 @@ object RPGCommand : BotCommand {
             ) {
                 val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
                 client.launch {
-                    user.rpg.rpgReminders[reminder.name] = Reminder(data.enabled, curTime, data.count + 1)
+                    user.rpg.rpgReminders[reminder.id] = Reminder(data.enabled, curTime, data.count + 1)
                     userCol.replaceOne(LXVUser::_id eq user._id, user)
                     reminderCol.insertOne(
                         StoredReminder(
                             mCE.message.id.value,
                             curTime + dif.roundToLong(),
                             "rpg",
-                            reminder.name,
+                            reminder.id,
                             mCE.message.channelId.value,
                             mCE.message.author!!.id.value,
                         )
@@ -457,9 +343,9 @@ object RPGCommand : BotCommand {
                         mCE.message.author!!.id,
                         mCE.message.author,
                         userCol
-                    ).rpg.rpgReminders[reminder.name]
+                    ).rpg.rpgReminders[reminder.id]
                     if (check?.lastUse == curTime && check.enabled) {
-                        reply(mCE.message, "RPG ${reminder.responseName(reminder, args)} cooldown is done", true)
+                        reply(mCE.message, reminder.getReminderMessage(args), true)
                     }
                     reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id.value)
                 }
@@ -478,10 +364,10 @@ object RPGCommand : BotCommand {
                 }
             }
             field?.value?.startsWith("Type **") == true -> {
-                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}")
+                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}", rolePing = true)
             }
             field?.name?.startsWith("Type `") == true -> {
-                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}")
+                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}", rolePing = true)
             }
             embed.footer?.text == "Type \"info\" to get information about pets" -> {
                 var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }

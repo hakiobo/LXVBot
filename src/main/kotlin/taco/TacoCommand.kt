@@ -52,8 +52,8 @@ object TacoCommand : BotCommand {
             HelpCommand.runCMD(this, mCE, listOf(this@TacoCommand.name))
         } else {
             when (args.first().toLowerCase()) {
-                "enable", "disable" -> handleEnableDisableSubCommand(mCE, args)
-                "reset" -> handleResetSubcommand(mCE, args)
+                "enable", "disable" -> handleEnableDisableSubCommand(mCE, args.map { it.toLowerCase() })
+                "reset" -> handleResetSubcommand(mCE,  args.map { it.toLowerCase() })
                 "info" -> handleInfoSubcommand(mCE)
                 "status", "settings", "stats", "stat" -> handleStatusSubcommand(mCE)
                 else -> reply(mCE.message, "Not a valid $name subcommand")

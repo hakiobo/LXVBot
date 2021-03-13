@@ -2,6 +2,7 @@ import commands.*
 import rpg.RPGCommand
 import commands.meta.HelpCommand
 import commands.util.BotCommand
+import dev.kord.common.entity.AllowedMentionType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.MessageBehavior
@@ -27,6 +28,7 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import rpg.RPGCommand.handleRPGCommand
 import rpg.RPGCommand.handleRPGMessage
+import rpg.RPGReminderType
 import taco.TacoCommand
 import taco.TacoCommand.handleTacoCommand
 import java.time.ZoneId
@@ -78,19 +80,14 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                     when (it.category) {
                         "rpg" -> {
                             val reminderSetting = check.rpg.rpgReminders[it.type]
-                            val reminder = RPGCommand.findReminder(listOf(it.type), false)
+                            val reminder = RPGReminderType.findReminder(it.type)
                             if (reminderSetting == null || reminder == null) {
                                 println("wtf should not be null")
                             } else {
                                 if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
                                     client.rest.channel.createMessage(Snowflake(it.channelId)) {
                                         messageReference = Snowflake(it.srcMsg)
-                                        content = "RPG ${
-                                            reminder.responseName(
-                                                reminder,
-                                                listOf(reminder.name)
-                                            )
-                                        } cooldown is done"
+                                        content = reminder.getReminderMessage(listOf(reminder.id))
                                     }
                                 }
                             }
@@ -168,16 +165,24 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         }
     }
 
-    internal suspend fun reply(
+    internal suspend inline fun reply(
         message: MessageBehavior,
         replyContent: String = "",
         ping: Boolean = false,
+        rolePing: Boolean = false,
+        userPing: Boolean = false,
         embedBuilder: EmbedBuilder.() -> Unit,
     ) {
         message.reply {
             content = replyContent
             allowedMentions {
                 repliedUser = ping
+                if (rolePing) {
+                    add(AllowedMentionType.RoleMentions)
+                }
+                if (userPing) {
+                    add(AllowedMentionType.UserMentions)
+                }
             }
             embed(embedBuilder)
         }
@@ -187,11 +192,19 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         message: MessageBehavior,
         replyContent: String = "",
         ping: Boolean = false,
+        rolePing: Boolean = false,
+        userPing: Boolean = false,
     ) {
         message.reply {
             content = replyContent
             allowedMentions {
                 repliedUser = ping
+                if (rolePing) {
+                    add(AllowedMentionType.RoleMentions)
+                }
+                if (userPing) {
+                    add(AllowedMentionType.UserMentions)
+                }
             }
         }
     }
