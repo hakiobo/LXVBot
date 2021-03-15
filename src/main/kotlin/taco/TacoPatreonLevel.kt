@@ -9,6 +9,10 @@ enum class TacoPatreonLevel(val aliases: List<String>, val tipReduction: Long, v
     GORDON_RAMSEY(listOf("ramsey", "gordon", "3"), 2 * 60_000L, 3 * 60_000L)
     ;
 
+    fun getFormattedName(): String {
+        return name.split("_").map { it.toLowerCase().capitalize() }.joinToString(" ")
+    }
+
     val id: String
         get() = aliases.first()
 

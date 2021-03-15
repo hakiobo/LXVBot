@@ -45,6 +45,13 @@ object TacoCommand : BotCommand {
                 listOf(Argument(listOf("status", "settings", "stats", "stat"))),
                 "Shows your reminder count and status for each TacoShack reminder"
             ),
+            CommandUsage(
+                listOf(Argument(listOf("donator", "patreon", "d", "p"))), "Shows your current TacoShack Donator status"
+            ),
+            CommandUsage(
+                listOf(Argument(listOf("donator", "patreon", "d", "p")), Argument("Donator Level")),
+                "Sets your TacoShack Donator Level"
+            ),
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
@@ -54,7 +61,7 @@ object TacoCommand : BotCommand {
             when (args.first().toLowerCase()) {
                 "enable", "disable" -> handleEnableDisableSubCommand(mCE, args.map { it.toLowerCase() })
                 "reset" -> handleResetSubcommand(mCE, args.map { it.toLowerCase() })
-                "patreon" -> handlePatreonSubcommand(mCE, args.map { it.toLowerCase() })
+                "donator", "patreon", "d", "p" -> handlePatreonSubcommand(mCE, args.map { it.toLowerCase() })
                 "info" -> handleInfoSubcommand(mCE)
                 "status", "settings", "stats", "stat" -> handleStatusSubcommand(mCE)
                 else -> reply(mCE.message, "Not a valid $name subcommand")
@@ -203,11 +210,11 @@ object TacoCommand : BotCommand {
         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
         val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
         if (args.size == 1) {
-            reply(mCE.message, "Current Taco Patreon Level is ${user.taco.patreonLevel.capitalize()}")
+            reply(mCE.message, "Current TacoShack Donator Level is ${user.taco.patreonLevel.capitalize()}")
         } else {
             val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].toLowerCase())
             userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::patreonLevel, newLevel.id))
-            reply(mCE.message, "Taco Patreon set to ${newLevel.id.capitalize()}")
+            reply(mCE.message, "TacoShack Donator level set to ${newLevel.getFormattedName()}")
         }
     }
 
