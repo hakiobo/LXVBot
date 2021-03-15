@@ -308,18 +308,20 @@ object RPGCommand : BotCommand {
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
             val data = user.rpg.rpgReminders[reminder.id]
             val curTime = mCE.message.id.timeStamp.toEpochMilli()
+            val pMult = if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
+            val eMult = if (reminder.eventAffects) RPGReminderType.EVENT_BONUS else 1.0
             val dif = if (reminder.id == "hunt") {
                 if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
-                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
+                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult
                 } else if (args.drop(1).firstOrNull()?.toLowerCase() in hardmodeAliases
                     && args.drop(2).firstOrNull()?.toLowerCase() in togetherAliases
                 ) {
-                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon)
+                    reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult
                 } else {
-                    reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
+                    reminder.cooldownMS * pMult * eMult
                 }
             } else {
-                reminder.cooldownMS * if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
+                reminder.cooldownMS * pMult * eMult
             }
 
             if (data?.enabled == true && (curTime - data.lastUse > dif)
