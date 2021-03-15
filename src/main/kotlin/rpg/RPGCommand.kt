@@ -309,7 +309,7 @@ object RPGCommand : BotCommand {
             val data = user.rpg.rpgReminders[reminder.id]
             val curTime = mCE.message.id.timeStamp.toEpochMilli()
             val pMult = if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
-            val eMult = if (reminder.eventAffects) RPGReminderType.EVENT_BONUS else 1.0
+            val eMult = if (reminder.eventAffected) RPGReminderType.EVENT_BONUS else 1.0
             val dif = if (reminder.id == "hunt") {
                 if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult

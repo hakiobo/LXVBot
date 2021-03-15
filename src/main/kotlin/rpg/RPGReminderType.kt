@@ -4,7 +4,7 @@ enum class RPGReminderType(
     val aliases: List<String>,
     val cooldownMS: Long,
     val patreonAffected: Boolean,
-    val eventAffects: Boolean,
+    val eventAffected: Boolean,
     val emoji: String = ""
 ) {
     HUNT(listOf("hunt"), 60_000, true, true, "<a:hunt:820275884245385236>") {
@@ -38,7 +38,7 @@ enum class RPGReminderType(
             return args.size >= 3 &&
                     args[0].toLowerCase() == "buy" &&
                     args[1].toLowerCase() in lootboxTypes &&
-                    args[2].toLowerCase() in aliases.dropLast(1)
+                    args[2].toLowerCase() in aliases.drop(1)
         }
     },
     QUEST(listOf("quest", "epic"), 6 * 3600_000, true, true) {
