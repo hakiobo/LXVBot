@@ -200,17 +200,21 @@ object RPGCommand : BotCommand {
                 }
             }
             "event" -> {
-                if (Permission.Administrator in mCE.member!!.getPermissions()) {
-                    if (args.size == 1) {
-                        reply(mCE.message, "Current cooldown reduction is ${100 * (1 - RPGReminderType.EVENT_BONUS)}%")
-                    } else {
-                        val pct = args[1].toDoubleOrNull()
-                        if (pct != null) {
+                if (args.size == 1) {
+                    reply(mCE.message, "Current cooldown reduction is ${100 * (1 - RPGReminderType.EVENT_BONUS)}%")
+                } else if (Permission.Administrator in mCE.member!!.getPermissions()) {
+                    val pct = args[1].toDoubleOrNull()
+                    if (pct != null) {
+                        if (pct < 1.0) {
                             RPGReminderType.EVENT_BONUS = 1 - pct
                             reply(mCE.message, "Set the event cooldown reduction to ${100 * pct}%")
                         } else {
-                            reply(mCE.message, "bad number")
+                            RPGReminderType.EVENT_BONUS = 1 - pct / 100
+                            reply(mCE.message, "Set the event cooldown reduction to ${pct}%")
                         }
+
+                    } else {
+                        reply(mCE.message, "bad number")
                     }
                 }
             }
