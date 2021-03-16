@@ -6,6 +6,7 @@ import entities.Reminder
 import commands.meta.HelpCommand
 import commands.util.*
 import dev.kord.common.Color
+import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Embed
 import dev.kord.core.event.message.MessageCreateEvent
@@ -195,6 +196,17 @@ object RPGCommand : BotCommand {
                             "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] <reminder>\" to set a specific reminder!\n" +
                                     "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] all\" to set all reminders!"
                         icon = self.avatar.url
+                    }
+                }
+            }
+            "event" -> {
+                if (Permission.Administrator in mCE.member!!.getPermissions()) {
+                    val pct = args.drop(1).firstOrNull()?.toDoubleOrNull()
+                    if (pct != null) {
+                        RPGReminderType.EVENT_BONUS = 1 - pct
+                        reply(mCE.message, "Set the event cooldown reduction to ${100 * pct}%")
+                    } else {
+                        reply(mCE.message, "bad number")
                     }
                 }
             }
