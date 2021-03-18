@@ -28,6 +28,13 @@ enum class RPGReminderType(
         }
     },
     TRAINING(listOf("training", "tr", "ultraining", "ultr"), 15 * 60_000 + 2_000, true, true, ":stadium:") {
+        override fun validate(args: List<String>): Boolean {
+            return args.size <= 1 || args.first() !in listOf("ultraining", "ultr") || args[1] !in listOf(
+                "p",
+                "progress"
+            )
+        }
+
         override fun getResponseName(args: List<String>): String {
             return if (args.first().toLowerCase().startsWith("u", ignoreCase = true)) "Ultraining" else "Training"
         }
@@ -139,7 +146,7 @@ enum class RPGReminderType(
         return getFormattedName()
     }
 
-    open fun validate(args: List<String>): Boolean {
+    protected open fun validate(args: List<String>): Boolean {
         return true
     }
 
@@ -147,8 +154,7 @@ enum class RPGReminderType(
         get() = aliases.first()
 
     companion object {
-        @Volatile
-        var EVENT_BONUS = 0.6
+        const val EVENT_BONUS = 1.0
 
         fun findReminder(name: String): RPGReminderType? {
             val cmd = name.toLowerCase()
