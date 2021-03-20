@@ -31,6 +31,7 @@ import rpg.RPGCommand.handleRPGMessage
 import rpg.RPGReminderType
 import taco.TacoCommand
 import taco.TacoCommand.handleTacoCommand
+import taco.TacoReminderType
 import java.time.ZoneId
 import java.util.regex.Pattern
 
@@ -94,7 +95,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
                         }
                         "tacoshack" -> {
-                            val reminder = TacoCommand.findTacoReminder(it.type)
+                            val reminder = TacoReminderType.findTacoReminder(it.type)
                             if (reminder == null) {
                                 println("wtf should not be null")
                             } else {
@@ -102,8 +103,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                                 if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
                                     client.rest.channel.createMessage(Snowflake(it.channelId)) {
                                         messageReference = Snowflake(it.srcMsg)
-                                        content =
-                                            "Taco Shack ${reminder.name.toLowerCase().capitalize()} cooldown is done"
+                                        content = reminder.getReminderMessage()
                                     }
                                 }
                             }

@@ -18,8 +18,8 @@ enum class RPGReminderType(
             }
         }
     },
-    DAILY(listOf("daily"), (23 * 60 + 50) * 60_000, true, true, "<a:daily:820280260163534868>"),
-    WEEKLY(listOf("weekly"), ((6 * 24 + 23) * 60 + 50) * 60_000, true, true, "<a:daily:820280260163534868>"),
+    DAILY(listOf("daily"), (23 * 60 + 50) * 60_000, false, true, "<a:daily:820280260163534868>"),
+    WEEKLY(listOf("weekly"), ((6 * 24 + 23) * 60 + 50) * 60_000, false, true, "<a:daily:820280260163534868>"),
     ADVENTURE(listOf("adventure", "adv"), 3600_000, true, true, "<a:adv:820275948053463050>"),
     PET_ADVENTURE(listOf("pet", "pets"), 4 * 3600_000, false, false, "<a:pets:820275963220197376>") {
         private val petAdvTypes = listOf("find", "learn", "drill")

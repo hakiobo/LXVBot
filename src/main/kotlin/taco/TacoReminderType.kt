@@ -38,4 +38,24 @@ enum class TacoReminderType(
     open fun getCooldown(settings: TacoPatreonLevel): Long {
         return time
     }
+
+    private val formattedName
+        get() = "${name.toLowerCase().capitalize()}${if (buy) " Boost" else ""}"
+
+
+    fun getReminderMessage(): String {
+        return "Your TacoShack `$formattedName` is Ready"
+    }
+
+    companion object {
+        fun findTacoReminder(nameToFind: String): TacoReminderType? {
+            val name = nameToFind.toLowerCase()
+            for (reminder in values()) {
+                if (name in reminder.aliases || name == reminder.name.toLowerCase()) {
+                    return reminder
+                }
+            }
+            return null
+        }
+    }
 }

@@ -69,16 +69,6 @@ object TacoCommand : BotCommand {
         }
     }
 
-    internal fun findTacoReminder(nameToFind: String): TacoReminderType? {
-        val name = nameToFind.toLowerCase()
-        for (reminder in TacoReminderType.values()) {
-            if (name in reminder.aliases || name == reminder.name.toLowerCase()) {
-                return reminder
-            }
-        }
-        return null
-    }
-
     private suspend fun LXVBot.handleEnableDisableSubCommand(mCE: MessageCreateEvent, args: List<String>) {
         if (args.size < 2) {
             reply(mCE.message, "You need to specify which reminder you're editing")
@@ -114,7 +104,7 @@ object TacoCommand : BotCommand {
             )
             reply(mCE.message, "All Taco Shack Reminders ${if (enable) "En" else "Dis"}abled!")
         } else {
-            val reminder = findTacoReminder(reminderArg)
+            val reminder = TacoReminderType.findTacoReminder(reminderArg)
             if (reminder != null) {
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (reminder.prop.get(user.taco.tacoReminders).enabled == enable) {
@@ -179,7 +169,11 @@ object TacoCommand : BotCommand {
             )
             reply(mCE.message, "All Taco Shack Reminder Cooldowns Reset!")
         } else {
-            val reminder = findTacoReminder(reminderArg)
+            val reminder = TacoReminderType.findTacoReminder(reminderArg)
+
+
+
+
             if (reminder != null) {
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (reminder.prop.get(user.taco.tacoReminders).lastUse == 0L) {
@@ -307,7 +301,7 @@ object TacoCommand : BotCommand {
                         if (check.lastUse == curTime && check.enabled) {
                             reply(
                                 mCE.message,
-                                "Taco Shack ${reminder.name.toLowerCase().capitalize()} cooldown is done",
+                                reminder.getReminderMessage(),
                                 true
                             )
                         }
