@@ -9,6 +9,7 @@ data class StoredReminder(
     val type: String,
     val channelId: Long,
     val otherData: Long,
+    val oldMsg: String = "",
 ) {
     companion object {
         const val DB_NAME = "reminders"

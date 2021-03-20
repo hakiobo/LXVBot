@@ -288,6 +288,7 @@ object TacoCommand : BotCommand {
                                 reminder.name,
                                 mCE.message.channelId.value,
                                 mCE.message.author!!.id.value,
+                                args.joinToString(" "),
                             )
                         )
                         delay(cooldown)

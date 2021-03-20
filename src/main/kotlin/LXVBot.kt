@@ -88,7 +88,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                                 if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
                                     client.rest.channel.createMessage(Snowflake(it.channelId)) {
                                         messageReference = Snowflake(it.srcMsg)
-                                        content = reminder.getReminderMessage(listOf(reminder.id))
+                                        content = reminder.getReminderMessage(it.oldMsg.split(" "))
                                     }
                                 }
                             }

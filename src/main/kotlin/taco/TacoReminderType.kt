@@ -40,7 +40,7 @@ enum class TacoReminderType(
     }
 
     private val formattedName
-        get() = "${name.toLowerCase()}${if (buy) " Boost" else ""}"
+        get() = "${name.toLowerCase()}${if (buy) " boost" else ""}"
 
 
     fun getReminderMessage(): String {

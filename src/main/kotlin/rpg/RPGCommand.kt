@@ -339,6 +339,7 @@ object RPGCommand : BotCommand {
                             reminder.id,
                             mCE.message.channelId.value,
                             mCE.message.author!!.id.value,
+                            args.joinToString(" ")
                         )
                     )
                     delay(dif.roundToLong())
