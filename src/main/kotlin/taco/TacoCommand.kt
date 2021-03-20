@@ -204,10 +204,10 @@ object TacoCommand : BotCommand {
         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
         val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
         if (args.size == 1) {
-            reply(mCE.message, "Current TacoShack Donator Level is ${user.taco.patreonLevel.capitalize()}")
+            reply(mCE.message, "Current TacoShack Donator Level is ${user.taco.donorLevel.capitalize()}")
         } else {
             val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].toLowerCase())
-            userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::patreonLevel, newLevel.id))
+            userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::donorLevel, newLevel.id))
             reply(mCE.message, "TacoShack Donator level set to ${newLevel.getFormattedName()}")
         }
     }
@@ -271,7 +271,7 @@ object TacoCommand : BotCommand {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 val userReminder = reminder.prop.get(user.taco.tacoReminders)
-                val cooldown = reminder.getCooldown(TacoPatreonLevel.findPatreonLevel(user.taco.patreonLevel))
+                val cooldown = reminder.getCooldown(TacoPatreonLevel.findPatreonLevel(user.taco.donorLevel))
                 if (userReminder.enabled && (curTime - userReminder.lastUse) >= cooldown) {
                     val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
                     client.launch {

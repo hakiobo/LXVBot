@@ -9,7 +9,7 @@ enum class TacoReminderType(
     private val time: Long,
     val buy: Boolean = false
 ) {
-    TIP(listOf("tip", "tips", "t"), TacoReminder::tip, 5 * 60_000L) {
+    TIPS(listOf("tip", "tips", "t"), TacoReminder::tip, 5 * 60_000L) {
         override fun getCooldown(settings: TacoPatreonLevel): Long {
             return super.getCooldown(settings) - settings.tipReduction
         }
@@ -40,7 +40,7 @@ enum class TacoReminderType(
     }
 
     private val formattedName
-        get() = "${name.toLowerCase().capitalize()}${if (buy) " Boost" else ""}"
+        get() = "${name.toLowerCase()}${if (buy) " Boost" else ""}"
 
 
     fun getReminderMessage(): String {
