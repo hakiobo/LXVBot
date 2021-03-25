@@ -18,6 +18,7 @@ enum class RPGReminderType(
             }
         }
     },
+    FARM(listOf("farm"), 10 * 60_000, true, true, "<a:farm:824514270406377472>"),
     DAILY(listOf("daily"), (23 * 60 + 50) * 60_000, false, true, "<a:daily:820280260163534868>"),
     WEEKLY(listOf("weekly"), ((6 * 24 + 23) * 60 + 50) * 60_000, false, true, "<a:daily:820280260163534868>"),
     ADVENTURE(listOf("adventure", "adv"), 3600_000, true, true, "<a:adv:820275948053463050>"),
