@@ -371,7 +371,9 @@ object RPGCommand : BotCommand {
                 reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.value.split("**")[1]}", rolePing = true)
             }
             field?.name?.startsWith("Type `") == true -> {
-                reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> ${field.name.split("`")[1]}", rolePing = true)
+                val m = field.name.split("`")[1]
+                if (m == "join" || m == "fight")
+                    reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> $m", rolePing = true)
             }
             embed.footer?.text == "Type \"info\" to get information about pets" -> {
                 var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }
