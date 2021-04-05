@@ -4,10 +4,10 @@ enum class RPGReminderType(
     val aliases: List<String>,
     val cooldownMS: Long,
     val patreonAffected: Boolean,
-    val eventAffected: Boolean,
+    val eventMultId: Int,
     val emoji: String = ""
 ) {
-    HUNT(listOf("hunt"), 60_000, true, true, "<a:hunt:820275884245385236>") {
+    HUNT(listOf("hunt"), 60_000, true, 2, "<a:hunt:820275884245385236>") {
         override fun getResponseName(args: List<String>): String {
             return if (args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")
                 || args.drop(2).firstOrNull()?.toLowerCase() in listOf("t", "together")
@@ -18,17 +18,17 @@ enum class RPGReminderType(
             }
         }
     },
-    FARM(listOf("farm"), 10 * 60_000, true, true, "<a:farm:824514270406377472>"),
-    DAILY(listOf("daily"), (23 * 60 + 50) * 60_000, false, true, "<a:daily:820280260163534868>"),
-    WEEKLY(listOf("weekly"), ((6 * 24 + 23) * 60 + 50) * 60_000, false, true, "<a:daily:820280260163534868>"),
-    ADVENTURE(listOf("adventure", "adv"), 3600_000, true, true, "<a:adv:820275948053463050>"),
-    PET_ADVENTURE(listOf("pet", "pets"), 4 * 3600_000, false, false, "<a:pets:820275963220197376>") {
+    FARM(listOf("farm"), 10 * 60_000, true, 2, "<a:farm:824514270406377472>"),
+    DAILY(listOf("daily"), (23 * 60 + 50) * 60_000, false, 0, "<a:daily:820280260163534868>"),
+    WEEKLY(listOf("weekly"), ((6 * 24 + 23) * 60 + 50) * 60_000, false, 0, "<a:daily:820280260163534868>"),
+    ADVENTURE(listOf("adventure", "adv"), 3600_000, true, 2, "<a:adv:820275948053463050>"),
+    PET_ADVENTURE(listOf("pet", "pets"), 4 * 3600_000, false, 0, "<a:pets:820275963220197376>") {
         private val petAdvTypes = listOf("find", "learn", "drill")
         override fun validate(args: List<String>): Boolean {
             return args.size >= 4 && args[1].toLowerCase() in ADVENTURE.aliases && args[2].toLowerCase() in petAdvTypes
         }
     },
-    TRAINING(listOf("training", "tr", "ultraining", "ultr"), 15 * 60_000 + 2_000, true, true, ":stadium:") {
+    TRAINING(listOf("training", "tr", "ultraining", "ultr"), 15 * 60_000 + 2_000, true, 2, ":stadium:") {
         override fun validate(args: List<String>): Boolean {
             return args.size <= 1 || args.first() !in listOf("ultraining", "ultr") || args[1] !in listOf(
                 "p",
@@ -40,7 +40,7 @@ enum class RPGReminderType(
             return if (args.first().toLowerCase().startsWith("u", ignoreCase = true)) "Ultraining" else "Training"
         }
     },
-    BUY_LOOTBOX(listOf("buy", "lootbox", "lb"), 3 * 3600_000, false, true, "<a:lootbox:820275922136596501>") {
+    BUY_LOOTBOX(listOf("buy", "lootbox", "lb"), 3 * 3600_000, false, 2, "<a:lootbox:820275922136596501>") {
         private val lootboxTypes = listOf("c", "common", "u", "uncommon", "r", "rare", "ep", "epic", "ed", "edgy")
         override fun validate(args: List<String>): Boolean {
             return args.size >= 3 &&
@@ -49,7 +49,7 @@ enum class RPGReminderType(
                     args[2].toLowerCase() in aliases.drop(1)
         }
     },
-    QUEST(listOf("quest", "epic"), 6 * 3600_000, true, true) {
+    QUEST(listOf("quest", "epic"), 6 * 3600_000, true, 2) {
         override fun validate(args: List<String>): Boolean {
             return if (args.first().toLowerCase() == "quest") {
                 true
@@ -58,7 +58,7 @@ enum class RPGReminderType(
             }
         }
     },
-    DUEL(listOf("duel"), 2 * 3600_000, false, true, "<a:duel:820364624809558068>"),
+    DUEL(listOf("duel"), 2 * 3600_000, false, 2, "<a:duel:820364624809558068>"),
     WORK(
         listOf(
             "work",
@@ -79,13 +79,13 @@ enum class RPGReminderType(
             "drill",
             "dynamite"
         ),
-        300_000, true, true, "<a:work:820275934619500564>"
+        300_000, true, 2, "<a:work:820275934619500564>"
     ) {
         override fun getResponseName(args: List<String>): String {
             return args.first().capitalize()
         }
     },
-    HORSE(listOf("horse"), 24 * 3600_000, true, true, "<a:horses:820368968635121684>") {
+    HORSE(listOf("horse"), 24 * 3600_000, true, 2, "<a:horses:820368968635121684>") {
         override fun getResponseName(args: List<String>): String {
             return "Horse Breeding/Race"
         }
@@ -108,7 +108,7 @@ enum class RPGReminderType(
         }
 
     },
-    ARENA(listOf("arena", "big"), 24 * 3600_000, true, true, "<a:arena:820366824562360392>") {
+    ARENA(listOf("arena", "big"), 24 * 3600_000, true, 2, "<a:arena:820366824562360392>") {
         override fun validate(args: List<String>): Boolean {
             return if (args.first().toLowerCase() == "arena") {
                 true
@@ -120,7 +120,7 @@ enum class RPGReminderType(
             }
         }
     },
-    MINIBOSS(listOf("miniboss", "not", "dungeon"), 12 * 3600_000, true, true) {
+    MINIBOSS(listOf("miniboss", "not", "dungeon"), 12 * 3600_000, true, 1) {
         override fun validate(args: List<String>): Boolean {
             return if (args.first().toLowerCase() == "miniboss" || args.first().toLowerCase() == "dungeon") {
                 true
@@ -155,7 +155,7 @@ enum class RPGReminderType(
         get() = aliases.first()
 
     companion object {
-        const val EVENT_BONUS = 1.0
+        val EVENT_BONUSES = listOf(1.0, 0.5, 0.8)
 
         fun findReminder(name: String): RPGReminderType? {
             val cmd = name.toLowerCase()

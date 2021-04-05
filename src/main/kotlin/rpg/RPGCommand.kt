@@ -310,7 +310,7 @@ object RPGCommand : BotCommand {
             val data = user.rpg.rpgReminders[reminder.id]
             val curTime = mCE.message.id.timeStamp.toEpochMilli()
             val pMult = if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
-            val eMult = if (reminder.eventAffected) RPGReminderType.EVENT_BONUS else 1.0
+            val eMult = RPGReminderType.EVENT_BONUSES[reminder.eventMultId]
             val dif = if (reminder.id == "hunt") {
                 if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult
@@ -381,6 +381,41 @@ object RPGCommand : BotCommand {
                 reply(mCE.message) {
                     title = "Pet Taming Helper"
                     color = Color(0x406da2)
+                    for (count in 1..6) {
+                        val hungerGain = min(hunger, 20)
+                        val happinessGain = min(100 - happiness, 10)
+                        if (hungerGain > happinessGain) {
+                            hunger -= hungerGain
+                            actions += "feed"
+                        } else {
+                            happiness += happinessGain
+                            actions += "pat"
+                        }
+                        val pct =
+                            (((happiness - hunger) * 10000) / 85)
+                                .coerceAtLeast(0)
+                                .coerceAtMost(10000)
+                                .toString()
+                                .padStart(3, '0')
+
+
+                        field {
+                            name = actions.joinToString(" ")
+                            value =
+                                "Estimated Happiness: $happiness\nEstimated Hunger: $hunger\nEstimated Catch Odds: **${
+                                    pct.dropLast(2)
+                                }.${pct.takeLast(2)}%**"
+                            inline = true
+                        }
+                    }
+                }
+            }
+            embed.author?.name?.endsWith("'s bunny") == true -> {
+                var (happiness, hunger) = field!!.value.split("\n").map { it.split(":").last().trim().toInt() }
+                val actions = mutableListOf<String>()
+                reply(mCE.message) {
+                    title = "Rabbit Catching Helper"
+                    color = Color(0x66ee88)
                     for (count in 1..6) {
                         val hungerGain = min(hunger, 20)
                         val happinessGain = min(100 - happiness, 10)
