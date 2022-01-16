@@ -40,7 +40,7 @@ object AssignChannel : BotCommand {
             if (args.size >= 2) {
                 val userId = LXVBot.getUserIdFromString(args[0])
                 val channelId = LXVBot.getChannelIdFromString(args[1])
-                val force = (args.getOrNull(3)?.toLowerCase() in listOf("f", "force"))
+                val force = (args.getOrNull(3)?.lowercase() in listOf("f", "force"))
                 if (userId == null || channelId == null) {
                     reply(mCE.message, "Fix format when")
                     return
@@ -86,7 +86,7 @@ object AssignChannel : BotCommand {
                         footer {
                             text =
                                 "You can use \"lxv $name $userId $channelId force\" to add them to this channel anyway"
-                            icon = self.avatar.url
+                            icon = self.avatar?.url
                         }
                     }
                 }

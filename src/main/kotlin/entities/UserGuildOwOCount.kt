@@ -1,14 +1,15 @@
 package entities
 
 import dev.kord.core.event.message.MessageCreateEvent
+import kotlinx.datetime.toJavaInstant
 import java.time.Instant
 import java.time.Year
 import java.time.ZoneId
 
 data class UserGuildOwOCount(
     val _id: String,
-    val user: Long,
-    val guild: Long,
+    val user: ULong,
+    val guild: ULong,
     var owoCount: Int = 0,
     var dailyCount: Int = 0,
     var yesterdayCount: Int = 0,
@@ -18,12 +19,12 @@ data class UserGuildOwOCount(
     var lastMonthCount: Int = 0,
     var yearlyCount: Int = 0,
     var lastYearCount: Int = 0,
-    var lastOWO: Long = 0,
+    var lastOWO: Long = 0L,
 ) {
 
     fun normalize(mCE: MessageCreateEvent): Boolean {
-        val curTime = mCE.message.id.timeStamp.atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
-        val oldTime = Instant.ofEpochMilli(lastOWO).atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
+        val curTime = mCE.message.id.timestamp.toJavaInstant().atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
+        val oldTime = Instant.ofEpochMilli(lastOWO.toLong()).atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
 
         when (curTime.year - oldTime.year) {
             0 -> {

@@ -17,6 +17,8 @@ suspend fun main() {
     val bot = LXVBot(discordClient, mongoClient)
     bot.startup()
     discordClient.login{
-        watching("https://www.patreon.com/hakibot")
+        presence {
+            watching("https://www.patreon.com/hakibot")
+        }
     }
 }

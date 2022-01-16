@@ -58,7 +58,7 @@ object PicBan : BotCommand {
                     reply(mCE.message, "User has been pic banned")
                 }
             } else {
-                if (args[1].toLowerCase() == "unban") {
+                if (args[1].lowercase() == "unban") {
                     val lxvUser = getUserFromDB(Snowflake(userId!!), member)
                     if (lxvUser.serverData.mee6Level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in member.roleIds) {
                         member.addRole(Snowflake(CAMERA_ROLE_ID), "User has been pic unbanned")

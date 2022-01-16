@@ -7,6 +7,9 @@ import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.UserGuildOwOCount
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
 import org.litote.kmongo.eq
 
 object OwOStat : BotCommand {
@@ -49,13 +52,13 @@ object OwOStat : BotCommand {
         }
     }
 
-    private suspend fun LXVBot.displayOwOStats(mCE: MessageCreateEvent, userId: Long) {
+    private suspend fun LXVBot.displayOwOStats(mCE: MessageCreateEvent, userId: ULong) {
         val query = hakiDb.getCollection<UserGuildOwOCount>(UserGuildOwOCount.DB_NAME)
             .findOne(UserGuildOwOCount::_id eq "$userId|${mCE.guildId!!.value}")
         if (query == null) {
             sendMessage(mCE.message.channel, "Could not find any OwO's for that user in this server", 10_000)
         } else {
-            val now = mCE.message.id.timeStamp.atZone(LXVBot.PST)
+            val now = mCE.message.id.timestamp.toLocalDateTime(LXVBot.PST).date
             query.normalize(mCE)
             val username = getUserFromDB(Snowflake(query.user)).username!!
             val guildName = mCE.getGuild()!!.name
@@ -70,7 +73,9 @@ object OwOStat : BotCommand {
                     name = "Current Stats"
                     value = "__Today__: ${query.dailyCount}\n" +
                             "__This Week__: ${query.weeklyCount}\n" +
-                            "__${now.month.name.toLowerCase().capitalize()}__: ${query.monthlyCount}\n" +
+                            "__${
+                                now.month.name.lowercase().replaceFirstChar { it.uppercase() }
+                            }__: ${query.monthlyCount}\n" +
                             "__${now.year}__: ${query.yearlyCount}"
                 }
                 field {
@@ -78,7 +83,7 @@ object OwOStat : BotCommand {
                     value = "__Yesterday__: ${query.yesterdayCount}\n" +
                             "__Last Week__: ${query.lastWeekCount}\n" +
                             "__${
-                                now.minusMonths(1).month.name.toLowerCase().capitalize()
+                                now.minus(DateTimeUnit.MONTH).month.name.lowercase().replaceFirstChar { it.uppercase() }
                             }__: ${query.lastMonthCount}\n" +
                             "__${now.year - 1}__: ${query.lastYearCount}"
                 }

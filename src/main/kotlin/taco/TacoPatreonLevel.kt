@@ -1,7 +1,5 @@
 package taco
 
-import rpg.RPGPatreonLevel
-
 enum class TacoPatreonLevel(val aliases: List<String>, val tipReduction: Long, val workReduction: Long) {
     NONE(listOf("none", "0"), 0L, 0L),
     SOUS(listOf("sous", "1"), 0L, 2 * 60_000L),
@@ -10,7 +8,7 @@ enum class TacoPatreonLevel(val aliases: List<String>, val tipReduction: Long, v
     ;
 
     fun getFormattedName(): String {
-        return name.split("_").map { it.toLowerCase().capitalize() }.joinToString(" ")
+        return name.split("_").joinToString(" ") { name -> name.lowercase().replaceFirstChar { c -> c.uppercase() } }
     }
 
     val id: String

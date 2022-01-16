@@ -9,8 +9,8 @@ enum class RPGReminderType(
 ) {
     HUNT(listOf("hunt"), 60_000, true, 2, "<a:hunt:820275884245385236>") {
         override fun getResponseName(args: List<String>): String {
-            return if (args.drop(1).firstOrNull()?.toLowerCase() in listOf("t", "together")
-                || args.drop(2).firstOrNull()?.toLowerCase() in listOf("t", "together")
+            return if (args.drop(1).firstOrNull()?.lowercase() in listOf("t", "together")
+                || args.drop(2).firstOrNull()?.lowercase() in listOf("t", "together")
             ) {
                 "Hunt Together"
             } else {
@@ -25,7 +25,7 @@ enum class RPGReminderType(
     PET_ADVENTURE(listOf("pet", "pets"), 4 * 3600_000, false, 0, "<a:pets:820275963220197376>") {
         private val petAdvTypes = listOf("find", "learn", "drill")
         override fun validate(args: List<String>): Boolean {
-            return args.size >= 4 && args[1].toLowerCase() in ADVENTURE.aliases && args[2].toLowerCase() in petAdvTypes
+            return args.size >= 4 && args[1].lowercase() in ADVENTURE.aliases && args[2].lowercase() in petAdvTypes
         }
     },
     TRAINING(listOf("training", "tr", "ultraining", "ultr"), 15 * 60_000 + 2_000, true, 2, ":stadium:") {
@@ -37,24 +37,24 @@ enum class RPGReminderType(
         }
 
         override fun getResponseName(args: List<String>): String {
-            return if (args.first().toLowerCase().startsWith("u", ignoreCase = true)) "Ultraining" else "Training"
+            return if (args.first().lowercase().startsWith("u", ignoreCase = true)) "Ultraining" else "Training"
         }
     },
     BUY_LOOTBOX(listOf("buy", "lootbox", "lb"), 3 * 3600_000, false, 2, "<a:lootbox:820275922136596501>") {
         private val lootboxTypes = listOf("c", "common", "u", "uncommon", "r", "rare", "ep", "epic", "ed", "edgy")
         override fun validate(args: List<String>): Boolean {
             return args.size >= 3 &&
-                    args[0].toLowerCase() == "buy" &&
-                    args[1].toLowerCase() in lootboxTypes &&
-                    args[2].toLowerCase() in aliases.drop(1)
+                    args[0].lowercase() == "buy" &&
+                    args[1].lowercase() in lootboxTypes &&
+                    args[2].lowercase() in aliases.drop(1)
         }
     },
     QUEST(listOf("quest", "epic"), 6 * 3600_000, true, 2) {
         override fun validate(args: List<String>): Boolean {
-            return if (args.first().toLowerCase() == "quest") {
+            return if (args.first().lowercase() == "quest") {
                 true
             } else {
-                args.size >= 2 && args.first().toLowerCase() == "epic" && args[1].toLowerCase() == "quest"
+                args.size >= 2 && args.first().lowercase() == "epic" && args[1].lowercase() == "quest"
             }
         }
     },
@@ -82,7 +82,7 @@ enum class RPGReminderType(
         300_000, true, 2, "<a:work:820275934619500564>"
     ) {
         override fun getResponseName(args: List<String>): String {
-            return args.first().capitalize()
+            return args.first().replaceFirstChar { it.uppercase() }
         }
     },
     HORSE(listOf("horse"), 24 * 3600_000, true, 2, "<a:horses:820368968635121684>") {
@@ -94,10 +94,10 @@ enum class RPGReminderType(
             return if (args.size < 2) {
                 false
             } else {
-                if (args[1].toLowerCase() == "race") {
+                if (args[1].lowercase() == "race") {
                     true
                 } else if (args.size >= 3) {
-                    args[2].toLowerCase() in listOf(
+                    args[2].lowercase() in listOf(
                         "breed",
                         "breeding"
                     ) && args[3].toLongOrNull() == null && LXVBot.getUserIdFromString(args[3]) != null
@@ -110,37 +110,37 @@ enum class RPGReminderType(
     },
     ARENA(listOf("arena", "big"), 24 * 3600_000, true, 2, "<a:arena:820366824562360392>") {
         override fun validate(args: List<String>): Boolean {
-            return if (args.first().toLowerCase() == "arena") {
+            return if (args.first().lowercase() == "arena") {
                 true
             } else {
                 args.size >= 3
-                        && args.first().toLowerCase() == "big"
-                        && args[1].toLowerCase() == "arena"
-                        && args[2].toLowerCase() == "join"
+                        && args.first().lowercase() == "big"
+                        && args[1].lowercase() == "arena"
+                        && args[2].lowercase() == "join"
             }
         }
     },
     MINIBOSS(listOf("miniboss", "not", "dungeon"), 12 * 3600_000, true, 1) {
         override fun validate(args: List<String>): Boolean {
-            return if (args.first().toLowerCase() == "miniboss" || args.first().toLowerCase() == "dungeon") {
+            return if (args.first().lowercase() == "miniboss" || args.first().lowercase() == "dungeon") {
                 true
             } else {
                 args.size >= 4
-                        && args.first().toLowerCase() == "not"
-                        && args[1].toLowerCase() == "so"
-                        && args[2].toLowerCase() == "mini"
-                        && args[3].toLowerCase() == "boss"
+                        && args.first().lowercase() == "not"
+                        && args[1].lowercase() == "so"
+                        && args[2].lowercase() == "mini"
+                        && args[3].lowercase() == "boss"
             }
         }
     },
     ;
 
     fun getFormattedName(): String {
-        return name.split("_").map { it.toLowerCase().capitalize() }.joinToString(" ")
+        return name.split("_").joinToString(" ") { name -> name.lowercase().replaceFirstChar { c -> c.uppercase() } }
     }
 
     fun getReminderMessage(args: List<String>): String {
-        return "Time for __**RPG ${getResponseName(args).toUpperCase()}**__ $emoji"
+        return "Time for __**RPG ${getResponseName(args).uppercase()}**__ $emoji"
     }
 
     protected open fun getResponseName(args: List<String>): String {
@@ -155,10 +155,10 @@ enum class RPGReminderType(
         get() = aliases.first()
 
     companion object {
-        val EVENT_BONUSES = listOf(1.0, 0.5, 0.8)
+        val EVENT_BONUSES = listOf(1.0, 1.0, 1.0)
 
         fun findReminder(name: String): RPGReminderType? {
-            val cmd = name.toLowerCase()
+            val cmd = name.lowercase()
             for (reminder in values()) {
                 if (cmd in reminder.aliases) {
                     return reminder
@@ -168,7 +168,7 @@ enum class RPGReminderType(
         }
 
         fun findValidReminder(args: List<String>): RPGReminderType? {
-            val a = args.map { it.toLowerCase() }
+            val a = args.map { it.lowercase() }
             val cmd = a.firstOrNull() ?: return null
             for (reminder in values()) {
                 if (cmd in reminder.aliases) {

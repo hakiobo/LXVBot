@@ -38,8 +38,7 @@ object TacoCommand : BotCommand {
                 "Resets the cooldown for a specific TacoShack reminder"
             ),
             CommandUsage(
-                listOf(Argument("info", ArgumentType.EXACT)),
-                "Shows a list of available reminders for TacoShack"
+                listOf(Argument("info", ArgumentType.EXACT)), "Shows a list of available reminders for TacoShack"
             ),
             CommandUsage(
                 listOf(Argument(listOf("status", "settings", "stats", "stat"))),
@@ -58,10 +57,10 @@ object TacoCommand : BotCommand {
         if (args.isEmpty()) {
             HelpCommand.runCMD(this, mCE, listOf(this@TacoCommand.name))
         } else {
-            when (args.first().toLowerCase()) {
-                "enable", "disable" -> handleEnableDisableSubCommand(mCE, args.map { it.toLowerCase() })
-                "reset" -> handleResetSubcommand(mCE, args.map { it.toLowerCase() })
-                "donator", "patreon", "d", "p" -> handlePatreonSubcommand(mCE, args.map { it.toLowerCase() })
+            when (args.first().lowercase()) {
+                "enable", "disable" -> handleEnableDisableSubCommand(mCE, args.map { it.lowercase() })
+                "reset" -> handleResetSubcommand(mCE, args.map { it.lowercase() })
+                "donator", "patreon", "d", "p" -> handlePatreonSubcommand(mCE, args.map { it.lowercase() })
                 "info" -> handleInfoSubcommand(mCE)
                 "status", "settings", "stats", "stat" -> handleStatusSubcommand(mCE)
                 else -> reply(mCE.message, "Not a valid $name subcommand")
@@ -74,8 +73,8 @@ object TacoCommand : BotCommand {
             reply(mCE.message, "You need to specify which reminder you're editing")
             return
         }
-        val enable = args.first().toLowerCase() == "enable"
-        val reminderArg = args[1].toLowerCase()
+        val enable = args.first().lowercase() == "enable"
+        val reminderArg = args[1].lowercase()
         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
         if (reminderArg == "all") {
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
@@ -99,8 +98,7 @@ object TacoCommand : BotCommand {
                 hammock = userReminder.hammock.copy(enabled = enable),
             )
             userCol.updateOne(
-                LXVUser::_id eq user._id,
-                setValue(LXVUser::taco / TacoData::tacoReminders, newReminderSettings)
+                LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::tacoReminders, newReminderSettings)
             )
             reply(mCE.message, "All Taco Shack Reminders ${if (enable) "En" else "Dis"}abled!")
         } else {
@@ -108,23 +106,17 @@ object TacoCommand : BotCommand {
             if (reminder != null) {
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (reminder.prop.get(user.taco.tacoReminders).enabled == enable) {
-                    reply(
-                        mCE.message,
-                        "TacoShack ${
-                            reminder.name.toLowerCase().capitalize()
-                        } Reminder Already ${if (enable) "En" else "Dis"}abled!"
-                    )
+                    reply(mCE.message, "TacoShack ${
+                        reminder.name.lowercase().replaceFirstChar { it.uppercase() }
+                    } Reminder Already ${if (enable) "En" else "Dis"}abled!")
                 } else {
                     userCol.updateOne(
                         LXVUser::_id eq user._id,
                         setValue(LXVUser::taco / TacoData::tacoReminders / reminder.prop / Reminder::enabled, enable)
                     )
-                    reply(
-                        mCE.message,
-                        "TacoShack ${
-                            reminder.name.toLowerCase().capitalize()
-                        } Reminder ${if (enable) "En" else "Dis"}abled!"
-                    )
+                    reply(mCE.message, "TacoShack ${
+                        reminder.name.lowercase().replaceFirstChar { it.uppercase() }
+                    } Reminder ${if (enable) "En" else "Dis"}abled!")
                 }
             } else {
                 reply(
@@ -140,7 +132,7 @@ object TacoCommand : BotCommand {
             reply(mCE.message, "You need to specify which reminder you're resetting")
             return
         }
-        val reminderArg = args[1].toLowerCase()
+        val reminderArg = args[1].lowercase()
         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
         if (reminderArg == "all") {
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
@@ -164,8 +156,7 @@ object TacoCommand : BotCommand {
                 hammock = userReminder.hammock.copy(lastUse = 0L),
             )
             userCol.updateOne(
-                LXVUser::_id eq user._id,
-                setValue(LXVUser::taco / TacoData::tacoReminders, newReminderSettings)
+                LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::tacoReminders, newReminderSettings)
             )
             reply(mCE.message, "All Taco Shack Reminder Cooldowns Reset!")
         } else {
@@ -178,18 +169,16 @@ object TacoCommand : BotCommand {
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (reminder.prop.get(user.taco.tacoReminders).lastUse == 0L) {
                     reply(
-                        mCE.message,
-                        "There's nothing to reset smh"
+                        mCE.message, "There's nothing to reset smh"
                     )
                 } else {
                     userCol.updateOne(
                         LXVUser::_id eq user._id,
                         setValue(LXVUser::taco / TacoData::tacoReminders / reminder.prop / Reminder::lastUse, 0L)
                     )
-                    reply(
-                        mCE.message,
-                        "TacoShack ${reminder.name.toLowerCase().capitalize()} Reminder Cooldown Reset!"
-                    )
+                    reply(mCE.message, "TacoShack ${
+                        reminder.name.lowercase().replaceFirstChar { it.uppercase() }
+                    } Reminder Cooldown Reset !")
                 }
             } else {
                 reply(
@@ -204,9 +193,12 @@ object TacoCommand : BotCommand {
         val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
         val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
         if (args.size == 1) {
-            reply(mCE.message, "Current TacoShack Donator Level is ${user.taco.donorLevel.capitalize()}")
+            reply(
+                mCE.message,
+                "Current TacoShack Donator Level is ${user.taco.donorLevel.replaceFirstChar { it.uppercase() }}"
+            )
         } else {
-            val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].toLowerCase())
+            val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].lowercase().replaceFirstChar { it.uppercase() })
             userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::donorLevel, newLevel.id))
             reply(mCE.message, "TacoShack Donator level set to ${newLevel.getFormattedName()}")
         }
@@ -217,12 +209,14 @@ object TacoCommand : BotCommand {
         reply(mCE.message) {
             title = "${LXVBot.BOT_NAME} TacoShack Command Info"
             description = TacoReminderType.values().joinToString("\n\n") { reminder ->
-                "${reminder.name.toLowerCase().capitalize()}\nAliases: ${reminder.aliases.joinToString(", ")}"
+                "${
+                    reminder.name.lowercase().replaceFirstChar { it.uppercase() }
+                }\nAliases: ${reminder.aliases.joinToString(", ")}"
             }
             footer {
                 text =
                     "You can also use \"${LXVBot.BOT_PREFIX} ts [enable/disable/reset] all\" to enable/disable/reset all of the cooldowns"
-                icon = self.avatar.url
+                icon = self.avatar?.url
             }
         }
     }
@@ -239,35 +233,35 @@ object TacoCommand : BotCommand {
             for (reminder in TacoReminderType.values()) {
                 field {
                     inline = true
-                    name = "${reminder.name.toLowerCase().capitalize()}${if (reminder.buy) " Boost" else ""}"
+                    name = "${
+                        reminder.name.lowercase().replaceFirstChar { it.uppercase() }
+                    }${if (reminder.buy) " Boost" else ""}"
                     val r = reminder.prop.get(user.taco.tacoReminders)
-                    value =
-                        "Enabled: ${LXVBot.getCheckmarkOrCross(r.enabled)}\nReminder Count: ${r.count}"
+                    value = "Enabled: ${LXVBot.getCheckmarkOrCross(r.enabled)}\nReminder Count: ${r.count}"
                 }
             }
             footer {
                 text =
-                    "\"${LXVBot.BOT_PREFIX} ts [enable/disable] <reminder>\" to set a specific reminder!\n" +
-                            "\"${LXVBot.BOT_PREFIX} ts [enable/disable] all\" to set all reminders!"
-                icon = self.avatar.url
+                    "\"${LXVBot.BOT_PREFIX} ts [enable/disable] <reminder>\" to set a specific reminder!\n" + "\"${LXVBot.BOT_PREFIX} ts [enable/disable] all\" to set all reminders!"
+                icon = self.avatar?.url
             }
         }
     }
 
     suspend fun LXVBot.handleTacoCommand(mCE: MessageCreateEvent, args: List<String>) {
-        val (id, buy) = when (args.firstOrNull()?.toLowerCase()) {
+        val (id, buy) = when (args.firstOrNull()?.lowercase()) {
             "buy" -> {
                 if (args.size < 2) return
-                args[1].toLowerCase() to true
+                args[1].lowercase() to true
             }
             null -> return
             else -> {
-                args.first().toLowerCase() to false
+                args.first().lowercase() to false
             }
         }
         for (reminder in TacoReminderType.values()) {
             if (reminder.buy == buy && id in reminder.aliases) {
-                val curTime = mCE.message.id.timeStamp.toEpochMilli()
+                val curTime = mCE.message.id.timestamp.toEpochMilliseconds()
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 val userReminder = reminder.prop.get(user.taco.tacoReminders)
@@ -294,16 +288,12 @@ object TacoCommand : BotCommand {
                         delay(cooldown)
                         val check = reminder.prop.get(
                             getUserFromDB(
-                                mCE.message.author!!.id,
-                                mCE.message.author,
-                                userCol
+                                mCE.message.author!!.id, mCE.message.author, userCol
                             ).taco.tacoReminders
                         )
                         if (check.lastUse == curTime && check.enabled) {
                             reply(
-                                mCE.message,
-                                reminder.getReminderMessage(),
-                                true
+                                mCE.message, reminder.getReminderMessage(), true
                             )
                         }
                         reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id.value)

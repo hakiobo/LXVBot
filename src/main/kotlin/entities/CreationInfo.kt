@@ -26,7 +26,7 @@ data class CreationInfo(val month: Int, val year: Int) {
         }
 
         fun getMonthNum(month: String): Int? {
-            return when (month.toLowerCase()) {
+            return when (month.lowercase()) {
                 "jan", "january" -> 1
                 "f", "feb", "february" -> 2
                 "mar", "march" -> 3

@@ -6,10 +6,10 @@ import entities.Reminder
 import commands.meta.HelpCommand
 import commands.util.*
 import dev.kord.common.Color
-import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.reply
 import dev.kord.core.entity.Embed
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.message.create.allowedMentions
 import entities.StoredReminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,8 +58,7 @@ object RPGCommand : BotCommand {
                 "Sets your Partner's Patreon level to the specified value"
             ),
             CommandUsage(
-                listOf(Argument("info", ArgumentType.EXACT)),
-                "Shows all available reminder types"
+                listOf(Argument("info", ArgumentType.EXACT)), "Shows all available reminder types"
             ),
             CommandUsage(
                 listOf(Argument(listOf("status", "settings", "stats", "stat"))),
@@ -84,24 +83,24 @@ object RPGCommand : BotCommand {
             HelpCommand.runCMD(this, mCE, listOf(this@RPGCommand.name))
             return
         }
-        when (args[0].toLowerCase()) {
-            "enable", "disable" -> handleEnableDisableSubcommand(mCE, args.map { it.toLowerCase() })
+        when (args[0].lowercase()) {
+            "enable", "disable" -> handleEnableDisableSubcommand(mCE, args.map { it.lowercase() })
             "reset" -> {
-                handleResetSubcommand(mCE, args.map { it.toLowerCase() })
+                handleResetSubcommand(mCE, args.map { it.lowercase() })
             }
             "patreon", "p" -> {
                 val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
-                        content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
-                                "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
+                        content =
+                            "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" + "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
                         allowedMentions {
                             repliedUser = false
                         }
                     }
                 } else {
-                    val new = RPGPatreonLevel.findPatreonLevel(args[1].toLowerCase())
+                    val new = RPGPatreonLevel.findPatreonLevel(args[1].lowercase())
 
                     val newUser = user.copy(rpg = user.rpg.copy(patreonMult = new.multiplier))
                     userCol.replaceOne(LXVUser::_id eq user._id, newUser)
@@ -119,14 +118,14 @@ object RPGCommand : BotCommand {
                 val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
                 if (args.size == 1) {
                     mCE.message.reply {
-                        content = "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" +
-                                "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
+                        content =
+                            "Current RPG Patreon Reduction is ${100 * (1 - user.rpg.patreonMult)}%\n" + "Current RPG Partner Patreon Reduction is ${100 * (1 - user.rpg.partnerPatreon)}%"
                         allowedMentions {
                             repliedUser = false
                         }
                     }
                 } else {
-                    val new = RPGPatreonLevel.findPatreonLevel(args[1].toLowerCase())
+                    val new = RPGPatreonLevel.findPatreonLevel(args[1].lowercase())
                     val newUser = user.copy(rpg = user.rpg.copy(partnerPatreon = new.multiplier))
                     userCol.replaceOne(LXVUser::_id eq user._id, newUser)
                     mCE.message.reply {
@@ -149,7 +148,9 @@ object RPGCommand : BotCommand {
                     reminderInfo.append("\n")
                 }
                 for (level in RPGPatreonLevel.values()) {
-                    patreonInfo.append("${level.name.capitalize()}: ${(100 * (1 - level.multiplier)).roundToInt()}% Reduced Cooldowns\n")
+                    patreonInfo.append("${
+                        level.name.replaceFirstChar { it.uppercase() }
+                    }: ${(100 * (1 - level.multiplier)).roundToInt()} % Reduced Cooldowns \n ")
                     patreonInfo.append("Aliases: ${level.aliases.joinToString(", ")}\n\n")
                 }
                 val self = client.getSelf()
@@ -158,7 +159,7 @@ object RPGCommand : BotCommand {
                     footer {
                         text =
                             "You can also use \"${LXVBot.BOT_PREFIX} rpg [enable/disable/reset] all\" to enable/disable/reset all of the cooldowns"
-                        icon = self.avatar.url
+                        icon = self.avatar?.url
                     }
                     field {
                         inline = true
@@ -193,9 +194,8 @@ object RPGCommand : BotCommand {
                     }
                     footer {
                         text =
-                            "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] <reminder>\" to set a specific reminder!\n" +
-                                    "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] all\" to set all reminders!"
-                        icon = self.avatar.url
+                            "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] <reminder>\" to set a specific reminder!\n" + "\"${LXVBot.BOT_PREFIX} rpg [enable/disable] all\" to set all reminders!"
+                        icon = self.avatar?.url
                     }
                 }
             }
@@ -218,14 +218,12 @@ object RPGCommand : BotCommand {
                 if (rpgData[rpgReminder.id] == null) {
                     rpgData[rpgReminder.id] = Reminder()
                 } else {
-                    rpgData[rpgReminder.id] =
-                        rpgData[rpgReminder.id]!!.copy(lastUse = 0L)
+                    rpgData[rpgReminder.id] = rpgData[rpgReminder.id]!!.copy(lastUse = 0L)
                 }
             }
             userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::rpg / RPGData::rpgReminders, rpgData))
             reply(
-                mCE.message,
-                "Reset All the Cooldowns!"
+                mCE.message, "Reset All the Cooldowns!"
             )
         } else {
             val reminder = RPGReminderType.findReminder(args[1])
@@ -238,13 +236,11 @@ object RPGCommand : BotCommand {
                 } else {
                     user.rpg.rpgReminders[reminder.id] = setting.copy(lastUse = 0L)
                     reply(
-                        mCE.message,
-                        "Reset the Cooldown!"
+                        mCE.message, "Reset the Cooldown!"
                     )
                 }
                 userCol.updateOne(
-                    LXVUser::_id eq user._id,
-                    setValue(LXVUser::rpg / RPGData::rpgReminders, user.rpg.rpgReminders)
+                    LXVUser::_id eq user._id, setValue(LXVUser::rpg / RPGData::rpgReminders, user.rpg.rpgReminders)
                 )
             } else {
                 reply(mCE.message, "Could not find that RPG reminder")
@@ -285,8 +281,7 @@ object RPGCommand : BotCommand {
                 }
                 userCol.replaceOne(LXVUser::_id eq user._id, user)
                 reply(
-                    mCE.message,
-                    "RPG ${reminder.getFormattedName()} Reminder ${if (enable) "En" else "Dis"}abled!"
+                    mCE.message, "RPG ${reminder.getFormattedName()} Reminder ${if (enable) "En" else "Dis"}abled!"
                 )
             } else {
                 reply(mCE.message, "Could not find that RPG reminder type")
@@ -297,10 +292,10 @@ object RPGCommand : BotCommand {
     internal suspend fun LXVBot.handleRPGCommand(mCE: MessageCreateEvent) {
         val args = run {
             val a = mCE.message.content.split(Pattern.compile("\\s+")).drop(1)
-            if (a.firstOrNull()?.toLowerCase() == "ascended") {
-                a.drop(1).map { it.toLowerCase() }
+            if (a.firstOrNull()?.lowercase() == "ascended") {
+                a.drop(1).map { it.lowercase() }
             } else {
-                a.map { it.toLowerCase() }
+                a.map { it.lowercase() }
             }
         }
         val reminder = RPGReminderType.findValidReminder(args)
@@ -308,14 +303,14 @@ object RPGCommand : BotCommand {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
             val user = getUserFromDB(mCE.message.author!!.id, mCE.message.author, userCol)
             val data = user.rpg.rpgReminders[reminder.id]
-            val curTime = mCE.message.id.timeStamp.toEpochMilli()
+            val curTime = mCE.message.id.timestamp.toEpochMilliseconds()
             val pMult = if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
             val eMult = RPGReminderType.EVENT_BONUSES[reminder.eventMultId]
             val dif = if (reminder.id == "hunt") {
-                if (args.drop(1).firstOrNull()?.toLowerCase() in togetherAliases) {
+                if (args.drop(1).firstOrNull()?.lowercase() in togetherAliases) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult
-                } else if (args.drop(1).firstOrNull()?.toLowerCase() in hardmodeAliases
-                    && args.drop(2).firstOrNull()?.toLowerCase() in togetherAliases
+                } else if (args.drop(1).firstOrNull()?.lowercase() in hardmodeAliases && args.drop(2).firstOrNull()
+                        ?.lowercase() in togetherAliases
                 ) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult
                 } else {
@@ -325,8 +320,7 @@ object RPGCommand : BotCommand {
                 reminder.cooldownMS * pMult * eMult
             }
 
-            if (data?.enabled == true && (curTime - data.lastUse > dif)
-            ) {
+            if (data?.enabled == true && (curTime - data.lastUse > dif)) {
                 val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
                 client.launch {
                     user.rpg.rpgReminders[reminder.id] = Reminder(data.enabled, curTime, data.count + 1)
@@ -344,9 +338,7 @@ object RPGCommand : BotCommand {
                     )
                     delay(dif.roundToLong())
                     val check = getUserFromDB(
-                        mCE.message.author!!.id,
-                        mCE.message.author,
-                        userCol
+                        mCE.message.author!!.id, mCE.message.author, userCol
                     ).rpg.rpgReminders[reminder.id]
                     if (check?.lastUse == curTime && check.enabled) {
                         reply(mCE.message, reminder.getReminderMessage(args), true)
@@ -372,8 +364,11 @@ object RPGCommand : BotCommand {
             }
             field?.name?.startsWith("Type `") == true -> {
                 val m = field.name.split("`")[1]
-                if (m == "join" || m == "fight")
-                    reply(mCE.message, "<@&${LXVBot.RPG_PING_ROLE_ID}> $m", rolePing = true)
+                if (m == "join" || m == "fight") reply(
+                    mCE.message,
+                    "<@&${LXVBot.RPG_PING_ROLE_ID}> $m",
+                    rolePing = true
+                )
             }
             embed.footer?.text == "Type \"info\" to get information about pets" -> {
                 var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }
@@ -391,12 +386,8 @@ object RPGCommand : BotCommand {
                             happiness += happinessGain
                             actions += "pat"
                         }
-                        val pct =
-                            (((happiness - hunger) * 10000) / 85)
-                                .coerceAtLeast(0)
-                                .coerceAtMost(10000)
-                                .toString()
-                                .padStart(3, '0')
+                        val pct = (((happiness - hunger) * 10000) / 85).coerceAtLeast(0).coerceAtMost(10000).toString()
+                            .padStart(3, '0')
 
 
                         field {
@@ -426,12 +417,8 @@ object RPGCommand : BotCommand {
                             happiness += happinessGain
                             actions += "pat"
                         }
-                        val pct =
-                            (((happiness - hunger) * 10000) / 85)
-                                .coerceAtLeast(0)
-                                .coerceAtMost(10000)
-                                .toString()
-                                .padStart(3, '0')
+                        val pct = (((happiness - hunger) * 10000) / 85).coerceAtLeast(0).coerceAtMost(10000).toString()
+                            .padStart(3, '0')
 
 
                         field {

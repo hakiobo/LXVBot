@@ -65,10 +65,10 @@ object CPCommand : BotCommand {
             sendMessage(mCE.message.channel, "${cpCol.countDocuments()} total pets stored")
             return
         }
-        when (val cmd = args.first().toLowerCase()) {
+        when (val cmd = args.first().lowercase()) {
             "get", "dex", "d" -> {
                 if (args.size == 2) {
-                    val cp = getCP(args[1].toLowerCase(), cpCol)
+                    val cp = getCP(args[1].lowercase(), cpCol)
                     if (cp == null) {
                         sendMessage(mCE.message.channel, "could not find cp ${args[1]}", 10_000)
                     } else {
@@ -88,7 +88,7 @@ object CPCommand : BotCommand {
 
             "ga", "getall", "da", "reg" -> {
                 if (args.size == 2) {
-                    val cps = getCPsRegex(args[1].filter { it.isLetterOrDigit() || it == '_' }.toLowerCase(), cpCol)
+                    val cps = getCPsRegex(args[1].filter { it.isLetterOrDigit() || it == '_' }.lowercase(), cpCol)
                     val msg = "Found Cps\n${
                         cps.map(CustomPatreon::name).sorted().take(20).ifEmpty { listOf("No Matches") }
                             .joinToString("\n")

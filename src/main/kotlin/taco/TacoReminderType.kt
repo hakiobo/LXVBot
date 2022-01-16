@@ -40,7 +40,7 @@ enum class TacoReminderType(
     }
 
     private val formattedName
-        get() = "${name.toLowerCase()}${if (buy) " boost" else ""}"
+        get() = "${name.lowercase()}${if (buy) " boost" else ""}"
 
 
     fun getReminderMessage(): String {
@@ -49,9 +49,9 @@ enum class TacoReminderType(
 
     companion object {
         fun findTacoReminder(nameToFind: String): TacoReminderType? {
-            val name = nameToFind.toLowerCase()
+            val name = nameToFind.lowercase()
             for (reminder in values()) {
-                if (name in reminder.aliases || name == reminder.name.toLowerCase()) {
+                if (name in reminder.aliases || name == reminder.name.lowercase()) {
                     return reminder
                 }
             }

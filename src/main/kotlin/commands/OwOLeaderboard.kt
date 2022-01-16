@@ -8,11 +8,11 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.LXVUser
 import entities.UserGuildOwOCount
+import kotlinx.datetime.*
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.aggregate
-import java.time.Duration
-import java.time.Instant
 import kotlin.reflect.KProperty1
+import kotlin.time.Duration
 
 object OwOLeaderboard : BotCommand {
     override val name: String
@@ -26,7 +26,7 @@ object OwOLeaderboard : BotCommand {
 
     private fun findType(s: String): RankingType? {
         for (t in RankingType.values()) {
-            if (s.toLowerCase() in t.triggers) {
+            if (s.lowercase() in t.triggers) {
                 return t
             }
         }
@@ -43,7 +43,7 @@ object OwOLeaderboard : BotCommand {
             var pageSet = false
             var valid = true
             for (a in args) {
-                val arg = a.toLowerCase()
+                val arg = a.lowercase()
                 if (arg.toIntOrNull() != null) {
                     if (arg.startsWith("p")) sendMessage(mCE.message.channel, "This is dumb")
                     if (sizeSet) {
@@ -78,8 +78,7 @@ object OwOLeaderboard : BotCommand {
                 size = size.coerceAtLeast(3).coerceAtMost(25)
                 page = page.coerceAtLeast(1).coerceAtMost(100 / size)
                 val offset = (page - 1) * size + 1
-                val result =
-                    type.interval.getIdDataPairs(this, mCE, type.unit, size, page)
+                val result = type.interval.getIdDataPairs(this, mCE, type.unit, size, page)
 
                 val filters = List(result.size) {
                     LXVUser::_id eq result[it].first
@@ -107,10 +106,10 @@ object OwOLeaderboard : BotCommand {
                     val timeLeft = type.unit.timeUntilEndOfCurrentPeriod(mCE.message.id)
                     if (timeLeft != null) {
                         footer {
-                            val d = timeLeft.toDays()
-                            val h = timeLeft.toHours() % 24
-                            val m = timeLeft.toMinutes() % 60
-                            val s = timeLeft.seconds % 60
+                            val d = timeLeft.inWholeDays
+                            val h = timeLeft.inWholeHours % 24
+                            val m = timeLeft.inWholeMinutes % 60
+                            val s = timeLeft.inWholeSeconds % 60
 
                             text = "${type.interval.note} ${d}D ${h}H ${m}M ${s}S"
                         }
@@ -133,78 +132,83 @@ object OwOLeaderboard : BotCommand {
         TOTAL(UserGuildOwOCount::owoCount, UserGuildOwOCount::owoCount) {
             override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration? = null
 
-            override fun startOfCurrentPeriod(id: Snowflake): Instant = Instant.MIN
+            override fun startOfCurrentPeriod(id: Snowflake): Instant = Instant.DISTANT_PAST
 
-            override fun startOfPreviousPeriod(id: Snowflake): Instant = Instant.MIN
+            override fun startOfPreviousPeriod(id: Snowflake): Instant = Instant.DISTANT_PAST
         },
         YEAR(UserGuildOwOCount::yearlyCount, UserGuildOwOCount::lastYearCount) {
-            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration? {
-                val time = id.timeStamp.atZone(LXVBot.PST)
-                val endTime = time.toLocalDate().plusYears(1).withDayOfYear(1).atStartOfDay(LXVBot.PST)
-
-                return Duration.between(time, endTime)
+            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration {
+                val time = id.timestamp
+                val endTime =
+                    time.toLocalDateTime(LXVBot.PST).date.plus(DateTimeUnit.YEAR).toJavaLocalDate().withDayOfYear(1)
+                        .toKotlinLocalDate().atStartOfDayIn(LXVBot.PST)
+                return endTime - time
             }
 
             override fun startOfCurrentPeriod(id: Snowflake): Instant {
-                return id.timeStamp.atZone(LXVBot.PST).toLocalDate().withDayOfYear(1).atStartOfDay(LXVBot.PST)
-                    .toInstant()
+                return id.timestamp.toLocalDateTime(LXVBot.PST).date.toJavaLocalDate().withDayOfYear(1)
+                    .toKotlinLocalDate().atStartOfDayIn(LXVBot.PST)
             }
 
             override fun startOfPreviousPeriod(id: Snowflake): Instant {
-                return id.timeStamp.atZone(LXVBot.PST).toLocalDate().minusYears(1L).withDayOfYear(1)
-                    .atStartOfDay(LXVBot.PST).toInstant()
+                return id.timestamp.toLocalDateTime(LXVBot.PST).date.minus(DateTimeUnit.YEAR).toJavaLocalDate()
+                    .withDayOfYear(1).toKotlinLocalDate().atStartOfDayIn(LXVBot.PST)
             }
         },
         MONTH(UserGuildOwOCount::monthlyCount, UserGuildOwOCount::lastMonthCount) {
-            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration? {
-                val time = id.timeStamp.atZone(LXVBot.PST)
-                val endTime = time.toLocalDate().plusMonths(1).withDayOfMonth(1).atStartOfDay(LXVBot.PST)
+            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration {
+                val time = id.timestamp
+                val endTime =
+                    time.toLocalDateTime(LXVBot.PST).date.plus(DateTimeUnit.MONTH).toJavaLocalDate().withDayOfMonth(1)
+                        .toKotlinLocalDate().atStartOfDayIn(LXVBot.PST)
 
-                return Duration.between(time, endTime)
+                return endTime - time
             }
 
             override fun startOfCurrentPeriod(id: Snowflake): Instant {
-                return id.timeStamp.atZone(LXVBot.PST).toLocalDate().withDayOfMonth(1).atStartOfDay(LXVBot.PST)
-                    .toInstant()
+                return id.timestamp.toLocalDateTime(LXVBot.PST).date.toJavaLocalDate().withDayOfMonth(1)
+                    .toKotlinLocalDate().atStartOfDayIn(LXVBot.PST)
             }
 
             override fun startOfPreviousPeriod(id: Snowflake): Instant {
-                return id.timeStamp.atZone(LXVBot.PST).toLocalDate().withDayOfMonth(1).minusMonths(1)
-                    .atStartOfDay(LXVBot.PST).toInstant()
+                return id.timestamp.toLocalDateTime(LXVBot.PST).date.minus(DateTimeUnit.MONTH).toJavaLocalDate()
+                    .withDayOfMonth(1).toKotlinLocalDate().atStartOfDayIn(LXVBot.PST)
             }
         },
         WEEK(UserGuildOwOCount::weeklyCount, UserGuildOwOCount::lastWeekCount) {
-            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration? {
-                val time = id.timeStamp.atZone(LXVBot.PST)
-                val endTime = time.toLocalDate().plusDays(7L - (time.dayOfWeek.value % 7)).atStartOfDay(LXVBot.PST)
+            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration {
+                val time = id.timestamp
+                val curDate = time.toLocalDateTime(LXVBot.PST).date
+                val endTime =
+                    curDate.plus(7 - (curDate.dayOfWeek.value % 7), DateTimeUnit.DAY).atStartOfDayIn(LXVBot.PST)
 
-                return Duration.between(time, endTime)
+                return endTime - time
             }
 
             override fun startOfCurrentPeriod(id: Snowflake): Instant {
-                val time = id.timeStamp.atZone(LXVBot.PST).toLocalDate()
-                return time.minusDays(time.dayOfWeek.value % 7L).atStartOfDay(LXVBot.PST).toInstant()
+                val curDate = id.timestamp.toLocalDateTime(LXVBot.PST).date
+                return curDate.minus(curDate.dayOfWeek.value % 7, DateTimeUnit.DAY).atStartOfDayIn(LXVBot.PST)
             }
 
             override fun startOfPreviousPeriod(id: Snowflake): Instant {
-                val time = id.timeStamp.atZone(LXVBot.PST).toLocalDate()
-                return time.minusDays((time.dayOfWeek.value % 7L)).minusWeeks(1).atStartOfDay(LXVBot.PST).toInstant()
+                val curDate = id.timestamp.toLocalDateTime(LXVBot.PST).date
+                return curDate.minus(7 + (curDate.dayOfWeek.value % 7), DateTimeUnit.DAY).atStartOfDayIn(LXVBot.PST)
             }
         },
         DAY(UserGuildOwOCount::dailyCount, UserGuildOwOCount::yesterdayCount) {
-            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration? {
-                val time = id.timeStamp.atZone(LXVBot.PST)
-                val endTime = time.toLocalDate().plusDays(1).atStartOfDay(LXVBot.PST)
-                return Duration.between(time, endTime)
+            override fun timeUntilEndOfCurrentPeriod(id: Snowflake): Duration {
+                val time = id.timestamp
+                val endTime = time.toLocalDateTime(LXVBot.PST).date.plus(DateTimeUnit.DAY).atStartOfDayIn(LXVBot.PST)
+                return endTime - time
             }
 
             override fun startOfCurrentPeriod(id: Snowflake): Instant {
-                return id.timeStamp.atZone(LXVBot.PST).toLocalDate().atStartOfDay(LXVBot.PST).toInstant()
+                return id.timestamp.toLocalDateTime(LXVBot.PST).date.atStartOfDayIn(LXVBot.PST)
+
             }
 
             override fun startOfPreviousPeriod(id: Snowflake): Instant {
-                return id.timeStamp.atZone(LXVBot.PST).toLocalDate().minusDays(1).atStartOfDay(LXVBot.PST)
-                    .toInstant()
+                return id.timestamp.toLocalDateTime(LXVBot.PST).date.minus(DateTimeUnit.DAY).atStartOfDayIn(LXVBot.PST)
             }
         };
 
@@ -226,7 +230,7 @@ object OwOLeaderboard : BotCommand {
                 unit: TimeUnit,
                 pageSize: Int,
                 pages: Int,
-            ): List<Pair<Long, Int>> {
+            ): List<Pair<ULong, Int>> {
                 return bot.hakiDb.getCollection<UserGuildOwOCount>("owo-count").aggregate<UserGuildOwOCount>(
                     match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
                     sort(descending(unit.curStat)),
@@ -244,10 +248,12 @@ object OwOLeaderboard : BotCommand {
                 unit: TimeUnit,
                 pageSize: Int,
                 pages: Int,
-            ): List<Pair<Long, Int>> {
+            ): List<Pair<ULong, Int>> {
                 return bot.hakiDb.getCollection<UserGuildOwOCount>("owo-count").aggregate<UserGuildOwOCount>(
                     match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
-                    match(UserGuildOwOCount::lastOWO gte unit.startOfCurrentPeriod(mCE.message.id).toEpochMilli()),
+                    match(
+                        UserGuildOwOCount::lastOWO gte unit.startOfCurrentPeriod(mCE.message.id).toEpochMilliseconds()
+                    ),
                     sort(descending(unit.curStat)),
                     limit(pageSize * pages),
                     sort(ascending(unit.curStat)),
@@ -263,35 +269,29 @@ object OwOLeaderboard : BotCommand {
                 unit: TimeUnit,
                 pageSize: Int,
                 pages: Int,
-            ): List<Pair<Long, Int>> {
-                val start = unit.startOfCurrentPeriod(mCE.message.id).toEpochMilli()
-                val prevStart = unit.startOfPreviousPeriod(mCE.message.id).toEpochMilli()
+            ): List<Pair<ULong, Int>> {
+                val start = unit.startOfCurrentPeriod(mCE.message.id).toEpochMilliseconds()
+                val prevStart = unit.startOfPreviousPeriod(mCE.message.id).toEpochMilliseconds()
                 val col = bot.hakiDb.getCollection<UserGuildOwOCount>("owo-count")
                 return col.aggregate<UserGuildOwOCount>(
                     match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
                     match(UserGuildOwOCount::lastOWO gte start),
                     sort(descending(unit.prevStat)),
                     limit(pageSize * pages)
-                ).toList().map { Pair(it.user, unit.prevStat.get(it)) }
-                    .union(
-                        col.aggregate<UserGuildOwOCount>(
-                            match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
-                            match(UserGuildOwOCount::lastOWO gte prevStart),
-                            match(UserGuildOwOCount::lastOWO lt start),
-                            sort(descending(unit.curStat)),
-                            limit(pageSize * pages)
-                        ).toList().map { Pair(it.user, unit.curStat.get(it)) }
-                    ).sortedByDescending { it.second }.drop(pageSize * (pages - 1)).take(pageSize)
+                ).toList().map { Pair(it.user, unit.prevStat.get(it)) }.union(col.aggregate<UserGuildOwOCount>(
+                    match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
+                    match(UserGuildOwOCount::lastOWO gte prevStart),
+                    match(UserGuildOwOCount::lastOWO lt start),
+                    sort(descending(unit.curStat)),
+                    limit(pageSize * pages)
+                ).toList().map { Pair(it.user, unit.curStat.get(it)) }).sortedByDescending { it.second }
+                    .drop(pageSize * (pages - 1)).take(pageSize)
             }
         };
 
         abstract suspend fun getIdDataPairs(
-            bot: LXVBot,
-            mCE: MessageCreateEvent,
-            unit: TimeUnit,
-            pageSize: Int,
-            pages: Int
-        ): List<Pair<Long, Int>>
+            bot: LXVBot, mCE: MessageCreateEvent, unit: TimeUnit, pageSize: Int, pages: Int
+        ): List<Pair<ULong, Int>>
     }
 
     private enum class RankingType(
@@ -300,23 +300,23 @@ object OwOLeaderboard : BotCommand {
         val interval: IntervalType,
         val unit: TimeUnit,
     ) {
-        TOTAL(listOf("all", "total"), "", IntervalType.TOTAL, TimeUnit.TOTAL),
-        YEAR(listOf("year", "yearly"), "Yearly ", IntervalType.CURRENT, TimeUnit.YEAR),
-        LAST_YEAR(listOf("lastyear", "prevyear", "ly", "py"), "Last Year's ", IntervalType.PREVIOUS, TimeUnit.YEAR),
-        MONTH(listOf("month", "m", "monthly"), "Monthly ", IntervalType.CURRENT, TimeUnit.MONTH),
-        LAST_MONTH(
-            listOf("lastmonth", "prevmonth", "lm", "pm"),
-            "Last Month's ",
-            IntervalType.PREVIOUS,
-            TimeUnit.MONTH
+        TOTAL(listOf("all", "total"), "", IntervalType.TOTAL, TimeUnit.TOTAL), YEAR(
+            listOf("year", "yearly"), "Yearly ", IntervalType.CURRENT, TimeUnit.YEAR
         ),
-        WEEK(listOf("week", "w", "weekly"), "Weekly ", IntervalType.CURRENT, TimeUnit.WEEK),
-        LAST_WEEK(listOf("lastweek", "prevweek", "lw", "pw"), "Last Week's ", IntervalType.PREVIOUS, TimeUnit.WEEK),
+        LAST_YEAR(
+            listOf("lastyear", "prevyear", "ly", "py"), "Last Year's ", IntervalType.PREVIOUS, TimeUnit.YEAR
+        ),
+        MONTH(listOf("month", "m", "monthly"), "Monthly ", IntervalType.CURRENT, TimeUnit.MONTH), LAST_MONTH(
+            listOf("lastmonth", "prevmonth", "lm", "pm"), "Last Month's ", IntervalType.PREVIOUS, TimeUnit.MONTH
+        ),
+        WEEK(
+            listOf("week", "w", "weekly"), "Weekly ", IntervalType.CURRENT, TimeUnit.WEEK
+        ),
+        LAST_WEEK(
+            listOf("lastweek", "prevweek", "lw", "pw"), "Last Week's ", IntervalType.PREVIOUS, TimeUnit.WEEK
+        ),
         DAY(
-            listOf("t", "today", "d", "day", "daily"),
-            "Today's ",
-            IntervalType.CURRENT,
-            TimeUnit.DAY
+            listOf("t", "today", "d", "day", "daily"), "Today's ", IntervalType.CURRENT, TimeUnit.DAY
         ),
         YESTERDAY(
             listOf("y", "yesterday", "yes", "yday", "pday", "prevday", "lday", "lastday"),

@@ -4,7 +4,7 @@ import rpg.RPGData
 import taco.TacoData
 
 data class LXVUser(
-    val _id: Long,
+    val _id: ULong,
     val username: String? = null,
     val rpg: RPGData = RPGData(),
     val taco: TacoData = TacoData(),

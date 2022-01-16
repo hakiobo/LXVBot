@@ -43,7 +43,7 @@ object HelpCommand : BotCommand {
                     title = "${LXVBot.BOT_NAME} Available Commands"
                     color = Color(0x00FF00)
                     footer {
-                        icon = self.avatar.url
+                        icon = self.avatar?.url
                         text = "${LXVBot.BOT_PREFIX}help <cmd> for more information about a specific command"
                     }
                     for ((category, cmds) in map) {
@@ -60,7 +60,7 @@ object HelpCommand : BotCommand {
                 if (args.first().startsWith("-")) {
                     val categoryStr = args.joinToString(" ").drop(1)
                     val category =
-                        CommandCategory.values().find { it.category.toLowerCase() == categoryStr.toLowerCase().trim() }
+                        CommandCategory.values().find { it.category.lowercase() == categoryStr.lowercase().trim() }
                     val cmds = commands.filter { it.category == category }
                     if (cmds.isNotEmpty()) {
                         sendMessage(mCE.message.channel) {

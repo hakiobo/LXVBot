@@ -7,8 +7,10 @@ import commands.util.CommandUsage
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.reply
 import dev.kord.core.event.message.MessageCreateEvent
-import java.time.Duration
-import java.time.Instant
+import dev.kord.rest.builder.message.create.allowedMentions
+import dev.kord.rest.builder.message.modify.allowedMentions
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 object Ping : BotCommand {
     override val name: String
@@ -23,19 +25,19 @@ object Ping : BotCommand {
         get() = CommandCategory.LXVBOT
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        val received = Instant.now()
+        val received = Clock.System.now()
         val msg =
-            "\ud83c\udfd3 Pong! Received in ${Duration.between(mCE.message.id.timeStamp, received).toMillis()} ms"
+            "\ud83c\udfd3 Pong! Received in ${(received - mCE.message.id.timestamp).inWholeMilliseconds} ms"
         val sent = mCE.message.reply {
             content = "$msg\nReply Sent In `Waiting . . .`"
-            this.allowedMentions {
+            allowedMentions {
                 repliedUser = false
             }
         }
-        val time = Duration.between(received, sent.id.timeStamp).toMillis()
+        val time = (sent.id.timestamp - received).inWholeMilliseconds
         sent.edit {
-            this.content = "$msg\nReply Sent In $time ms"
-            this.allowedMentions {
+            content = "$msg\nReply Sent In $time ms"
+            allowedMentions {
                 repliedUser = false
             }
         }

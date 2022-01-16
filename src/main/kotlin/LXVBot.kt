@@ -14,10 +14,13 @@ import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
+import dev.kord.rest.builder.message.create.allowedMentions
+import dev.kord.rest.builder.message.create.embed
 import entities.LXVUser
 import entities.StoredReminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
 import moderation.AssignChannel
 import moderation.PicBan
 import moderation.RemoveChannel
@@ -63,13 +66,13 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             val p = client.rest.channel.createMessage(Snowflake(LXV_BOT_UPDATE_CHANNEL_ID)) {
                 content = "LXV Bot is online"
             }
-            val curTime = p.id.timeStamp.toEpochMilli()
+            val curTime = p.id.timestamp.toEpochMilliseconds()
             val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
             val reminders = reminderCol.find().toList()
             reminders.forEach {
                 client.launch {
-                    val msgTime = Snowflake(it.srcMsg).timeStamp.toEpochMilli()
+                    val msgTime = Snowflake(it.srcMsg).timestamp.toEpochMilliseconds()
                     if (curTime < it.reminderTime) {
                         delay(it.reminderTime - curTime)
                     }
@@ -155,7 +158,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
         val args = msg.split(Pattern.compile("\\s+"))
-        val cmd = args.first().toLowerCase()
+        val cmd = args.first().lowercase()
         if (cmd.isBlank()) return
         val toRun = lookupCMD(cmd)
         if (toRun != null) {
@@ -175,6 +178,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     ) {
         message.reply {
             content = replyContent
+
             allowedMentions {
                 repliedUser = ping
                 if (rolePing) {
@@ -286,42 +290,42 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val RPG_PREFIX = "rpg"
         const val TACO_SHACK_PREFIX = "ts"
         const val DB_NAME = "lxv"
-        const val HAKI_ID = 292483348738080769
-        const val ERYS_ID = 412812867348463636
-        const val MEE6_ID = 159985870458322944
-        const val RPG_BOT_ID = 555955826880413696
-        const val LEVEL_UP_CHANNEL_ID = 763523136238780456
-        const val LXV_BOT_UPDATE_CHANNEL_ID = 816768818088116225
-        const val LXV_SERVER_ID = 714152739252338749
-        const val RPG_PING_ROLE_ID = 795936961344831549
+        const val HAKI_ID = 292483348738080769U
+        const val ERYS_ID = 412812867348463636U
+        const val MEE6_ID = 159985870458322944U
+        const val RPG_BOT_ID = 555955826880413696U
+        const val LEVEL_UP_CHANNEL_ID = 763523136238780456U
+        const val LXV_BOT_UPDATE_CHANNEL_ID = 816768818088116225U
+        const val LXV_SERVER_ID = 714152739252338749U
+        const val RPG_PING_ROLE_ID = 795936961344831549U
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 
-        val PST: ZoneId = ZoneId.of("PST", ZoneId.SHORT_IDS)
+        val PST = TimeZone.of( "PST")
 
-        fun getUserIdFromString(s: String?): Long? {
+        fun getUserIdFromString(s: String?): ULong? {
             return if (s == null) {
                 null
-            } else if (s.toLongOrNull() != null) {
-                s.toLong()
+            } else if (s.toULongOrNull() != null) {
+                s.toULong()
             } else if (s.startsWith("<@") && s.endsWith(">")) {
                 if (s[2] == '!') {
-                    s.drop(3).dropLast(1).toLongOrNull()
+                    s.drop(3).dropLast(1).toULongOrNull()
                 } else {
-                    s.drop(2).dropLast(1).toLongOrNull()
+                    s.drop(2).dropLast(1).toULongOrNull()
                 }
             } else {
                 null
             }
         }
 
-        fun getChannelIdFromString(s: String?): Long? {
+        fun getChannelIdFromString(s: String?): ULong? {
             return if (s == null) {
                 null
-            } else if (s.toLongOrNull() != null) {
-                s.toLong()
+            } else if (s.toULongOrNull() != null) {
+                s.toULong()
             } else if (s.startsWith("<#") && s.endsWith(">")) {
-                s.drop(2).dropLast(1).toLongOrNull()
+                s.drop(2).dropLast(1).toULongOrNull()
             } else {
                 null
             }
