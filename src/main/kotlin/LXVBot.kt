@@ -160,12 +160,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val args = msg.split(Pattern.compile("\\s+"))
         val cmd = args.first().lowercase()
         if (cmd.isBlank()) return
-        val toRun = lookupCMD(cmd)
-        if (toRun != null) {
-            toRun.runCMD(this, mCE, args.drop(1))
-        } else {
-            reply(mCE.message, "Invalid Command: use ${BOT_PREFIX}help to see available commands")
-        }
+        lookupCMD(cmd)?.runCMD(this, mCE, args.drop(1))
     }
 
     internal suspend inline fun reply(
@@ -301,7 +296,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 
-        val PST = TimeZone.of( "PST")
+        val PST = TimeZone.of("PST")
 
         fun getUserIdFromString(s: String?): ULong? {
             return if (s == null) {
