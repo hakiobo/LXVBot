@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
     java
     id("com.github.johnrengelman.shadow") version "6.1.0"
+    kotlin("plugin.serialization") version "1.6.10"
 }
 
 group = "me.huebnerj"
@@ -20,7 +21,7 @@ dependencies {
     testImplementation(kotlin("test-testng"))
     implementation("dev.kord", "kord-core", "0.8.0-M8")
     implementation("org.slf4j", "slf4j-simple", "1.7.30")
-    implementation("org.litote.kmongo", "kmongo-coroutine", "4.2.4")
+    implementation("org.litote.kmongo", "kmongo-coroutine-serialization", "4.4.0")
 }
 
 application {

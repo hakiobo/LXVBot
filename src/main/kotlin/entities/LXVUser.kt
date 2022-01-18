@@ -1,10 +1,13 @@
 package entities
 
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import rpg.RPGData
 import taco.TacoData
 
+@Serializable
 data class LXVUser(
-    val _id: ULong,
+    @Contextual val _id: ULong,
     val username: String? = null,
     val rpg: RPGData = RPGData(),
     val taco: TacoData = TacoData(),

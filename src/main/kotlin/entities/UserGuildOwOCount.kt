@@ -1,11 +1,13 @@
 package entities
 
+import LXVBot
 import dev.kord.core.event.message.MessageCreateEvent
-import kotlinx.datetime.toJavaInstant
-import java.time.Instant
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 import java.time.Year
-import java.time.ZoneId
 
+@Serializable
 data class UserGuildOwOCount(
     val _id: String,
     val user: ULong,
@@ -23,12 +25,13 @@ data class UserGuildOwOCount(
 ) {
 
     fun normalize(mCE: MessageCreateEvent): Boolean {
-        val curTime = mCE.message.id.timestamp.toJavaInstant().atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
-        val oldTime = Instant.ofEpochMilli(lastOWO.toLong()).atZone(ZoneId.of("PST", ZoneId.SHORT_IDS)).toLocalDate()
+
+        val curTime = mCE.message.id.timestamp.toLocalDateTime(LXVBot.PST).date
+        val oldTime = Instant.fromEpochMilliseconds(lastOWO).toLocalDateTime(LXVBot.PST).date
 
         when (curTime.year - oldTime.year) {
             0 -> {
-                when (curTime.monthValue - oldTime.monthValue) {
+                when (curTime.monthNumber - oldTime.monthNumber) {
                     0 -> {
                     }
                     1 -> {
@@ -67,7 +70,7 @@ data class UserGuildOwOCount(
             }
             1 -> {
                 lastYearCount = yearlyCount
-                lastMonthCount = if (curTime.monthValue == 1 && oldTime.monthValue == 12) {
+                lastMonthCount = if (curTime.monthNumber == 1 && oldTime.monthNumber == 12) {
                     yesterdayCount = if (curTime.dayOfMonth == 1 && oldTime.dayOfMonth == 31) {
                         dailyCount
                     } else {

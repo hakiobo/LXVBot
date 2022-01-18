@@ -6,7 +6,7 @@ import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
 
 val MONGO_CONNECT_URI =
-    ConnectionString("mongodb+srv://${System.getenv("db-user")}:${System.getenv("db-pass")}@${System.getenv("db-address")}/LXV")
+    ConnectionString("mongodb+srv://${System.getenv("db-user")!!}:${System.getenv("db-pass")!!}@${System.getenv("db-address")!!}/${LXVBot.LXV_DB_NAME}")
 
 suspend fun main() {
     val discordClient = Kord(System.getenv("lxv-token"))
@@ -16,7 +16,7 @@ suspend fun main() {
     val mongoClient = KMongo.createClient(mongoSettings).coroutine
     val bot = LXVBot(discordClient, mongoClient)
     bot.startup()
-    discordClient.login{
+    discordClient.login {
         presence {
             watching("https://www.patreon.com/hakibot")
         }

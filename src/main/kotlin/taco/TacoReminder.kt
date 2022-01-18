@@ -1,7 +1,9 @@
 package taco
 
 import entities.Reminder
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class TacoReminder(
     val tip: Reminder = Reminder(),
     val work: Reminder = Reminder(),

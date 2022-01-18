@@ -121,6 +121,6 @@ data class CustomPatreon(
 
     companion object {
         val random = Random.Default
-        val DB_NAME = "cp"
+        const val DB_NAME = "cp"
     }
 }

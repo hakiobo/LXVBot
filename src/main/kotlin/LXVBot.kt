@@ -35,14 +35,13 @@ import rpg.RPGReminderType
 import taco.TacoCommand
 import taco.TacoCommand.handleTacoCommand
 import taco.TacoReminderType
-import java.time.ZoneId
 import java.util.regex.Pattern
 
 
 class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
-    val db = mongoCon.getDatabase(DB_NAME)
-    val hakiDb = mongoCon.getDatabase("Hakibot")
+    val db = mongoCon.getDatabase(LXV_DB_NAME)
+    val hakiDb = mongoCon.getDatabase(HAKI_DB_NAME)
 
     val commands = listOf(
         RPGCommand,
@@ -284,7 +283,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val BOT_PREFIX = "lxv"
         const val RPG_PREFIX = "rpg"
         const val TACO_SHACK_PREFIX = "ts"
-        const val DB_NAME = "lxv"
+        val LXV_DB_NAME = System.getenv("lxv-db-name")!!
+        val HAKI_DB_NAME = System.getenv("haki-db-name")!!
         const val HAKI_ID = 292483348738080769U
         const val ERYS_ID = 412812867348463636U
         const val MEE6_ID = 159985870458322944U
@@ -296,7 +296,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 
-        val PST = TimeZone.of("PST")
+        val PST = TimeZone.of("America/Los_Angeles")
 
         fun getUserIdFromString(s: String?): ULong? {
             return if (s == null) {
