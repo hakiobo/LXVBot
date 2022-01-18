@@ -24,7 +24,7 @@ object ReadEmbed : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if (mCE.message.author?.id?.value == LXVBot.HAKI_ID) {
+        if (mCE.message.author?.id == LXVBot.HAKI_ID) {
             val id = args.firstOrNull()?.toLongOrNull()
             if (id == null) {
                 reply(mCE.message, "bad Id")
@@ -32,7 +32,7 @@ object ReadEmbed : BotCommand {
             }
             val msg = client.rest.channel.getMessage(mCE.message.channelId, Snowflake(id))
             if (msg.embeds.isNotEmpty()) {
-                if (msg.author.id.value == LXVBot.RPG_BOT_ID) {
+                if (msg.author.id == LXVBot.RPG_BOT_ID) {
                     handleEmbed(mCE, Embed(EmbedData.from(msg.embeds.first()), client))
                 } else {
                     reply(mCE.message, "```\n${msg.embeds.first()}\n```")

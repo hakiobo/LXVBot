@@ -58,11 +58,12 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         RemoveChannel,
         PicBan,
         ReadEmbed,
+        Logout,
     )
 
     suspend fun startup() {
         client.on<ReadyEvent> {
-            val p = client.rest.channel.createMessage(Snowflake(LXV_BOT_UPDATE_CHANNEL_ID)) {
+            val p = client.rest.channel.createMessage(LXV_BOT_UPDATE_CHANNEL_ID) {
                 content = "LXV Bot is online"
             }
             val curTime = p.id.timestamp.toEpochMilliseconds()
@@ -76,9 +77,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                         delay(it.reminderTime - curTime)
                     }
                     val check = getUserFromDB(
-                        it.otherData,
-                        null,
-                        userCol
+                        it.otherData, null, userCol
                     )
                     when (it.category) {
                         "rpg" -> {
@@ -125,10 +124,10 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
 
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
-        if (mCE.message.author?.id?.value == MEE6_ID && mCE.message.channelId.value == LEVEL_UP_CHANNEL_ID) {
+        if (mCE.message.author?.id == MEE6_ID && mCE.message.channelId == LEVEL_UP_CHANNEL_ID) {
             handleMee6LevelUpMessage(mCE)
         }
-        if (mCE.message.author?.id?.value == RPG_BOT_ID) {
+        if (mCE.message.author?.id == RPG_BOT_ID) {
             handleRPGMessage(mCE)
         }
         if (mCE.message.author?.isBot == true) return
@@ -141,8 +140,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         }
         if (mCE.message.content.startsWith(TACO_SHACK_PREFIX, false)) {
             handleTacoCommand(
-                mCE,
-                mCE.message.content.drop(TACO_SHACK_PREFIX.length).trim().split(Pattern.compile("\\s+"))
+                mCE, mCE.message.content.drop(TACO_SHACK_PREFIX.length).trim().split(Pattern.compile("\\s+"))
             )
         }
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
@@ -251,9 +249,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     }
 
     internal suspend fun getUserFromDB(
-        userID: Snowflake,
-        u: User? = null,
-        col: CoroutineCollection<LXVUser> = db.getCollection(LXVUser.DB_NAME)
+        userID: Snowflake, u: User? = null, col: CoroutineCollection<LXVUser> = db.getCollection(LXVUser.DB_NAME)
     ): LXVUser {
         val query = col.findOne(LXVUser::_id eq userID)
         return if (query == null) {
@@ -280,19 +276,19 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
     companion object {
         const val BOT_NAME = "LXV Bot"
-        const val BOT_PREFIX = "lxv"
+        val BOT_PREFIX = System.getenv("lxv-prefix")!!
         const val RPG_PREFIX = "rpg"
         const val TACO_SHACK_PREFIX = "ts"
         val LXV_DB_NAME = System.getenv("lxv-db-name")!!
         val HAKI_DB_NAME = System.getenv("haki-db-name")!!
-        const val HAKI_ID = 292483348738080769U
-        const val ERYS_ID = 412812867348463636U
-        const val MEE6_ID = 159985870458322944U
-        const val RPG_BOT_ID = 555955826880413696U
-        const val LEVEL_UP_CHANNEL_ID = 763523136238780456U
-        const val LXV_BOT_UPDATE_CHANNEL_ID = 816768818088116225U
-        const val LXV_SERVER_ID = 714152739252338749U
-        const val RPG_PING_ROLE_ID = 795936961344831549U
+        val HAKI_ID = Snowflake(292483348738080769)
+        val ERYS_ID = Snowflake(412812867348463636)
+        val MEE6_ID = Snowflake(159985870458322944)
+        val RPG_BOT_ID = Snowflake(555955826880413696)
+        val LEVEL_UP_CHANNEL_ID = Snowflake(763523136238780456)
+        val LXV_BOT_UPDATE_CHANNEL_ID = Snowflake(816768818088116225)
+        val LXV_SERVER_ID = Snowflake(714152739252338749)
+        val RPG_PING_ROLE_ID = Snowflake(795936961344831549)
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 

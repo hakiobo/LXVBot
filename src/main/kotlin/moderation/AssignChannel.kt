@@ -32,7 +32,7 @@ object AssignChannel : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if (mCE.guildId?.value != LXVBot.LXV_SERVER_ID) {
+        if (mCE.guildId != LXVBot.LXV_SERVER_ID) {
             reply(mCE.message, "This only works in LXV")
             return
         }
@@ -51,7 +51,7 @@ object AssignChannel : BotCommand {
                     reply(mCE.message, "That user isn't valid")
                     return
                 }
-                if (channel == null || channel.guildId.value != LXVBot.LXV_SERVER_ID) {
+                if (channel == null || channel.guildId != LXVBot.LXV_SERVER_ID) {
                     reply(mCE.message, "That channel isn't valid")
                     return
                 }

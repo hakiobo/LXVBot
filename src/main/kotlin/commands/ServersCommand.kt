@@ -24,7 +24,7 @@ object ServersCommand : BotCommand {
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         val guilds = mutableListOf<Guild>()
         client.guilds.onEach { guilds.add(it) }.collect()
-        if (args.firstOrNull() == "all" && mCE.message.author?.id?.value in listOf(LXVBot.ERYS_ID, LXVBot.HAKI_ID)) {
+        if (args.firstOrNull() == "all" && mCE.message.author?.id in listOf(LXVBot.ERYS_ID, LXVBot.HAKI_ID)) {
             sendMessage(
                 mCE.message.channel,
                 "**__${LXVBot.BOT_NAME} Guilds__**\n${guilds.joinToString("\n") { it.name }}"
