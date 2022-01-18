@@ -327,12 +327,12 @@ object RPGCommand : BotCommand {
                     userCol.replaceOne(LXVUser::_id eq user._id, user)
                     reminderCol.insertOne(
                         StoredReminder(
-                            mCE.message.id.value,
+                            mCE.message.id,
                             curTime + dif.roundToLong(),
                             "rpg",
                             reminder.id,
-                            mCE.message.channelId.value,
-                            mCE.message.author!!.id.value,
+                            mCE.message.channelId,
+                            mCE.message.author!!.id,
                             args.joinToString(" ")
                         )
                     )
@@ -343,7 +343,7 @@ object RPGCommand : BotCommand {
                     if (check?.lastUse == curTime && check.enabled) {
                         reply(mCE.message, reminder.getReminderMessage(args), true)
                     }
-                    reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id.value)
+                    reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id)
                 }
             }
         }

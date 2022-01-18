@@ -276,12 +276,12 @@ object TacoCommand : BotCommand {
                         )
                         reminderCol.insertOne(
                             StoredReminder(
-                                mCE.message.id.value,
+                                mCE.message.id,
                                 curTime + cooldown,
                                 "tacoshack",
                                 reminder.name,
-                                mCE.message.channelId.value,
-                                mCE.message.author!!.id.value,
+                                mCE.message.channelId,
+                                mCE.message.author!!.id,
                                 args.joinToString(" "),
                             )
                         )
@@ -296,7 +296,7 @@ object TacoCommand : BotCommand {
                                 mCE.message, reminder.getReminderMessage(), true
                             )
                         }
-                        reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id.value)
+                        reminderCol.deleteOne(StoredReminder::srcMsg eq mCE.message.id)
                     }
                 }
             }

@@ -1,5 +1,8 @@
 package entities
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CreationInfo(val month: Int, val year: Int) {
 
     override fun toString(): String {

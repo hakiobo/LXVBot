@@ -1,5 +1,5 @@
 package rpg
 
-import org.bson.codecs.pojo.annotations.BsonId
+import kotlinx.serialization.SerialName
 
-data class RPGGuild(@BsonId val name: String, val members: MutableList<Long> = mutableListOf())
+data class RPGGuild(@SerialName("_id") val name: String, val members: MutableList<Long> = mutableListOf())

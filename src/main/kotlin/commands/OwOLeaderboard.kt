@@ -81,14 +81,14 @@ object OwOLeaderboard : BotCommand {
                 val result = type.interval.getIdDataPairs(this, mCE, type.unit, size, page)
 
                 val filters = List(result.size) {
-                    LXVUser::_id eq result[it].first
+                    LXVUser::_id eq  result[it].first
                 }
 
                 val names = userCol.find(or(filters)).toList()
                 val usernames = result.map { res ->
                     names.find { user ->
                         user._id == res.first
-                    }?.username ?: getUserFromDB(Snowflake(res.first), col = userCol).username
+                    }?.username ?: getUserFromDB(res.first, col = userCol).username
                 }
 
                 val guildName = mCE.getGuild()?.name ?: "No Name????"
@@ -230,9 +230,9 @@ object OwOLeaderboard : BotCommand {
                 unit: TimeUnit,
                 pageSize: Int,
                 pages: Int,
-            ): List<Pair<ULong, Int>> {
+            ): List<Pair<Snowflake, Int>> {
                 return bot.hakiDb.getCollection<UserGuildOwOCount>("owo-count").aggregate<UserGuildOwOCount>(
-                    match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
+                    match(UserGuildOwOCount::guild eq mCE.guildId!!),
                     sort(descending(unit.curStat)),
                     limit(pageSize * pages),
                     sort(ascending(unit.curStat)),
@@ -248,9 +248,9 @@ object OwOLeaderboard : BotCommand {
                 unit: TimeUnit,
                 pageSize: Int,
                 pages: Int,
-            ): List<Pair<ULong, Int>> {
+            ): List<Pair<Snowflake, Int>> {
                 return bot.hakiDb.getCollection<UserGuildOwOCount>("owo-count").aggregate<UserGuildOwOCount>(
-                    match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
+                    match(UserGuildOwOCount::guild eq mCE.guildId!!),
                     match(
                         UserGuildOwOCount::lastOWO gte unit.startOfCurrentPeriod(mCE.message.id).toEpochMilliseconds()
                     ),
@@ -269,17 +269,17 @@ object OwOLeaderboard : BotCommand {
                 unit: TimeUnit,
                 pageSize: Int,
                 pages: Int,
-            ): List<Pair<ULong, Int>> {
+            ): List<Pair<Snowflake, Int>> {
                 val start = unit.startOfCurrentPeriod(mCE.message.id).toEpochMilliseconds()
                 val prevStart = unit.startOfPreviousPeriod(mCE.message.id).toEpochMilliseconds()
                 val col = bot.hakiDb.getCollection<UserGuildOwOCount>("owo-count")
                 return col.aggregate<UserGuildOwOCount>(
-                    match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
+                    match(UserGuildOwOCount::guild eq mCE.guildId!!),
                     match(UserGuildOwOCount::lastOWO gte start),
                     sort(descending(unit.prevStat)),
                     limit(pageSize * pages)
                 ).toList().map { Pair(it.user, unit.prevStat.get(it)) }.union(col.aggregate<UserGuildOwOCount>(
-                    match(UserGuildOwOCount::guild eq mCE.guildId!!.value),
+                    match(UserGuildOwOCount::guild eq mCE.guildId!!),
                     match(UserGuildOwOCount::lastOWO gte prevStart),
                     match(UserGuildOwOCount::lastOWO lt start),
                     sort(descending(unit.curStat)),
@@ -291,7 +291,7 @@ object OwOLeaderboard : BotCommand {
 
         abstract suspend fun getIdDataPairs(
             bot: LXVBot, mCE: MessageCreateEvent, unit: TimeUnit, pageSize: Int, pages: Int
-        ): List<Pair<ULong, Int>>
+        ): List<Pair<Snowflake, Int>>
     }
 
     private enum class RankingType(

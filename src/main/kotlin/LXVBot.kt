@@ -71,12 +71,12 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             val reminders = reminderCol.find().toList()
             reminders.forEach {
                 client.launch {
-                    val msgTime = Snowflake(it.srcMsg).timestamp.toEpochMilliseconds()
+                    val msgTime = it.srcMsg.timestamp.toEpochMilliseconds()
                     if (curTime < it.reminderTime) {
                         delay(it.reminderTime - curTime)
                     }
                     val check = getUserFromDB(
-                        Snowflake(it.otherData),
+                        it.otherData,
                         null,
                         userCol
                     )
@@ -88,8 +88,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                                 println("wtf should not be null")
                             } else {
                                 if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
-                                    client.rest.channel.createMessage(Snowflake(it.channelId)) {
-                                        messageReference = Snowflake(it.srcMsg)
+                                    client.rest.channel.createMessage(it.channelId) {
+                                        messageReference = it.srcMsg
                                         content = reminder.getReminderMessage(it.oldMsg.split(" "))
                                     }
                                 }
@@ -103,8 +103,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                             } else {
                                 val reminderSetting = reminder.prop.get(check.taco.tacoReminders)
                                 if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
-                                    client.rest.channel.createMessage(Snowflake(it.channelId)) {
-                                        messageReference = Snowflake(it.srcMsg)
+                                    client.rest.channel.createMessage(it.channelId) {
+                                        messageReference = it.srcMsg
                                         content = reminder.getReminderMessage()
                                     }
                                 }
@@ -255,12 +255,12 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         u: User? = null,
         col: CoroutineCollection<LXVUser> = db.getCollection(LXVUser.DB_NAME)
     ): LXVUser {
-        val query = col.findOne(LXVUser::_id eq userID.value)
+        val query = col.findOne(LXVUser::_id eq userID)
         return if (query == null) {
             val user = if (u == null) {
-                LXVUser(userID.value, client.getUser(userID)?.username ?: "Deleted User#${userID.value}")
+                LXVUser(userID, client.getUser(userID)?.username ?: "Deleted User#${userID.value}")
             } else {
-                LXVUser(userID.value, u.username)
+                LXVUser(userID, u.username)
             }
             col.insertOne(user)
             user
@@ -298,8 +298,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
         val PST = TimeZone.of("America/Los_Angeles")
 
-        fun getUserIdFromString(s: String?): ULong? {
-            return if (s == null) {
+        fun getUserIdFromString(s: String?): Snowflake? {
+            val id = if (s == null) {
                 null
             } else if (s.toULongOrNull() != null) {
                 s.toULong()
@@ -312,10 +312,11 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             } else {
                 null
             }
+            return if (id == null) null else Snowflake(id)
         }
 
-        fun getChannelIdFromString(s: String?): ULong? {
-            return if (s == null) {
+        fun getChannelIdFromString(s: String?): Snowflake? {
+            val id = if (s == null) {
                 null
             } else if (s.toULongOrNull() != null) {
                 s.toULong()
@@ -324,6 +325,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             } else {
                 null
             }
+            return if (id == null) null else Snowflake(id)
         }
 
         fun getCheckmarkOrCross(checkmark: Boolean): String = if (checkmark) CHECKMARK_EMOJI else CROSSMARK_EMOJI

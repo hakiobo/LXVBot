@@ -46,9 +46,9 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
     }
     var user: User? = null
     val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-    val lxvUser = getUserFromDB(Snowflake(userId), user, userCol)
+    val lxvUser = getUserFromDB(userId, user, userCol)
     if (level >= min(CAMERA_ROLE_LEVEL, 10)) {
-        user = client.getUser(Snowflake(userId))
+        user = client.getUser(userId)
         val member = user?.asMemberOrNull(mCE.guildId!!)
         if (member == null) {
             println("Could not find that user in this guild")

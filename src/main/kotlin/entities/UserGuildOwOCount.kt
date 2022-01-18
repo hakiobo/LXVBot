@@ -1,6 +1,7 @@
 package entities
 
 import LXVBot
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
@@ -10,8 +11,8 @@ import java.time.Year
 @Serializable
 data class UserGuildOwOCount(
     val _id: String,
-    val user: ULong,
-    val guild: ULong,
+    val user: Snowflake,
+    val guild: Snowflake,
     var owoCount: Int = 0,
     var dailyCount: Int = 0,
     var yesterdayCount: Int = 0,

@@ -32,7 +32,7 @@ object AssignChannel : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if(mCE.guildId?.value != LXVBot.LXV_SERVER_ID){
+        if (mCE.guildId?.value != LXVBot.LXV_SERVER_ID) {
             reply(mCE.message, "This only works in LXV")
             return
         }
@@ -45,8 +45,8 @@ object AssignChannel : BotCommand {
                     reply(mCE.message, "Fix format when")
                     return
                 }
-                val channel = client.getChannelOf<GuildMessageChannel>(Snowflake(channelId))
-                val user = client.getUser(Snowflake(userId))
+                val channel = client.getChannelOf<GuildMessageChannel>(channelId)
+                val user = client.getUser(userId)
                 if (user == null) {
                     reply(mCE.message, "That user isn't valid")
                     return
@@ -58,7 +58,7 @@ object AssignChannel : BotCommand {
                 val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                 val check = col.find(LXVUser::serverData / ServerData::customChannel eq channelId).toList()
                 if (check.isEmpty() || force) {
-                    val lxvUser = getUserFromDB(Snowflake(userId), user, col)
+                    val lxvUser = getUserFromDB(userId, user, col)
                     col.updateOne(
                         LXVUser::_id eq userId,
                         setValue(LXVUser::serverData / ServerData::customChannel, channelId)

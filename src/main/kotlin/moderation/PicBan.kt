@@ -40,14 +40,14 @@ object PicBan : BotCommand {
                 reply(mCE.message, "Invalid Format")
             }
             val userId = LXVBot.getUserIdFromString(args.first())
-            val member = if (userId == null) null else client.getUser(Snowflake(userId))?.asMemberOrNull(mCE.guildId!!)
+            val member = if (userId == null) null else client.getUser(userId)?.asMemberOrNull(mCE.guildId!!)
             if (member == null) {
                 reply(mCE.message, "Invalid User")
                 return
             }
             val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
             if (args.size == 1) {
-                val lxvUser = getUserFromDB(Snowflake(userId!!), member)
+                val lxvUser = getUserFromDB(userId!!, member)
                 if (Snowflake(CAMERA_ROLE_ID) in member.roleIds) {
                     member.removeRole(Snowflake(CAMERA_ROLE_ID), "User has been pic banned")
                 }
@@ -59,7 +59,7 @@ object PicBan : BotCommand {
                 }
             } else {
                 if (args[1].lowercase() == "unban") {
-                    val lxvUser = getUserFromDB(Snowflake(userId!!), member)
+                    val lxvUser = getUserFromDB(userId!!, member)
                     if (lxvUser.serverData.mee6Level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in member.roleIds) {
                         member.addRole(Snowflake(CAMERA_ROLE_ID), "User has been pic unbanned")
                     }

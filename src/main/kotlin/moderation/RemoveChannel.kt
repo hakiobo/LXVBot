@@ -40,13 +40,13 @@ object RemoveChannel : BotCommand {
                     reply(mCE.message, "Fake user")
                     return
                 }
-                val user = client.getUser(Snowflake(userId))
+                val user = client.getUser(userId)
                 if (user == null) {
                     reply(mCE.message, "Fake user")
                     return
                 }
                 val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-                val lxvUser = getUserFromDB(Snowflake(userId), user, col)
+                val lxvUser = getUserFromDB(userId, user, col)
                 if (lxvUser.serverData.customChannel == null) {
                     reply(mCE.message, "That User doesn't have a custom channel")
                 } else {

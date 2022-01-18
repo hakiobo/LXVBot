@@ -1,13 +1,13 @@
 package entities
 
-import kotlinx.serialization.Contextual
+import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import rpg.RPGData
 import taco.TacoData
 
 @Serializable
 data class LXVUser(
-    @Contextual val _id: ULong,
+    val _id: Snowflake,
     val username: String? = null,
     val rpg: RPGData = RPGData(),
     val taco: TacoData = TacoData(),

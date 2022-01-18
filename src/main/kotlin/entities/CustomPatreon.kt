@@ -2,11 +2,14 @@ package entities
 
 import dev.kord.common.Color
 import dev.kord.rest.builder.message.EmbedBuilder
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.bson.codecs.pojo.annotations.BsonId
 import kotlin.random.Random
 
+@Serializable
 data class CustomPatreon(
-    @BsonId val name: String,
+    @SerialName("_id") val name: String,
     val hp: Int,
     val str: Int,
     val pr: Int,

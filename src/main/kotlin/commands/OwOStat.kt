@@ -36,7 +36,7 @@ object OwOStat : BotCommand {
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         when (args.size) {
             0 -> {
-                displayOwOStats(mCE, mCE.member!!.id.value)
+                displayOwOStats(mCE, mCE.member!!.id)
             }
             1 -> {
                 val userId = getUserIdFromString(args.first())
@@ -52,7 +52,7 @@ object OwOStat : BotCommand {
         }
     }
 
-    private suspend fun LXVBot.displayOwOStats(mCE: MessageCreateEvent, userId: ULong) {
+    private suspend fun LXVBot.displayOwOStats(mCE: MessageCreateEvent, userId: Snowflake) {
         val query = hakiDb.getCollection<UserGuildOwOCount>(UserGuildOwOCount.DB_NAME)
             .findOne(UserGuildOwOCount::_id eq "$userId|${mCE.guildId!!.value}")
         if (query == null) {
@@ -60,9 +60,9 @@ object OwOStat : BotCommand {
         } else {
             val now = mCE.message.id.timestamp.toLocalDateTime(LXVBot.PST).date
             query.normalize(mCE)
-            val username = getUserFromDB(Snowflake(query.user)).username!!
+            val username = getUserFromDB(query.user).username!!
             val guildName = mCE.getGuild()!!.name
-            val avatar = client.getUser(Snowflake(userId))?.avatar?.url
+            val avatar = client.getUser(userId)?.avatar?.url
             sendMessage(mCE.message.channel) {
                 author {
                     name = "$username's OwOs in $guildName"

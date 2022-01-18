@@ -1,14 +1,17 @@
 package entities
 
-import org.bson.codecs.pojo.annotations.BsonId
+import dev.kord.common.entity.Snowflake
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class StoredReminder(
-    @BsonId val srcMsg: ULong,
+    @SerialName("_id") val srcMsg: Snowflake,
     val reminderTime: Long,
     val category: String,
     val type: String,
-    val channelId: ULong,
-    val otherData: ULong,
+    val channelId: Snowflake,
+    val otherData: Snowflake,
     val oldMsg: String = "",
 ) {
     companion object {
