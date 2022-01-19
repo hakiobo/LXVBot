@@ -9,6 +9,7 @@ import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.User
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.message.MessageCreateEvent
@@ -18,6 +19,7 @@ import dev.kord.rest.builder.message.create.allowedMentions
 import dev.kord.rest.builder.message.create.embed
 import entities.LXVUser
 import entities.StoredReminder
+import entities.UserBattleCount.Companion.countBattle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
@@ -130,6 +132,9 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.author?.id == RPG_BOT_ID) {
             handleRPGMessage(mCE)
         }
+        if (mCE.message.author?.id == OWO_ID) {
+            handleOwOMessage(mCE)
+        }
         if (mCE.message.author?.isBot == true) return
         if (mCE.guildId == null) {
             sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
@@ -159,6 +164,28 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (cmd.isBlank()) return
         lookupCMD(cmd)?.runCMD(this, mCE, args.drop(1))
     }
+
+    private suspend fun handleOwOMessage(mCE: MessageCreateEvent) {
+        val embeds = mCE.message.embeds
+        if (embeds.isNotEmpty()) {
+            val id = embeds.first().author?.iconUrl?.split("avatars/")?.last()?.split("/")?.first()?.toULongOrNull()
+            val fields = embeds.first().fields
+
+            var isBattle = false
+            if (id != null && fields.size >= 2) {
+                isBattle = if (fields.all { it.value.startsWith("L.") }) {
+                    true
+                } else {
+                    embeds.first().fields.all { it.value.startsWith("Lvl.") }
+                }
+            }
+            if (isBattle) {
+                countBattle(mCE.message.id, Snowflake(id!!), mCE.guildId!!)
+            }
+        }
+    }
+//        reply(mCE.message)
+
 
     internal suspend inline fun reply(
         message: MessageBehavior,
@@ -285,6 +312,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val ERYS_ID = Snowflake(412812867348463636)
         val MEE6_ID = Snowflake(159985870458322944)
         val RPG_BOT_ID = Snowflake(555955826880413696)
+        val OWO_ID = Snowflake(408785106942164992)
         val LEVEL_UP_CHANNEL_ID = Snowflake(763523136238780456)
         val LXV_BOT_UPDATE_CHANNEL_ID = Snowflake(816768818088116225)
         val LXV_SERVER_ID = Snowflake(714152739252338749)

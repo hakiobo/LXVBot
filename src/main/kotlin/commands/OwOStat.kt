@@ -6,6 +6,8 @@ import commands.util.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
+import entities.UserBattleCount
+import entities.UserGuildDate
 import entities.UserGuildOwOCount
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
@@ -36,14 +38,14 @@ object OwOStat : BotCommand {
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         when (args.size) {
             0 -> {
-                displayOwOStats(mCE, mCE.member!!.id)
+                displayBattleStats(mCE, mCE.member!!.id)
             }
             1 -> {
                 val userId = getUserIdFromString(args.first())
                 if (userId == null) {
                     sendMessage(mCE.message.channel, "That's not a user", 5_000)
                 } else {
-                    displayOwOStats(mCE, userId)
+                    displayBattleStats(mCE, userId)
                 }
             }
             else -> {
@@ -91,4 +93,32 @@ object OwOStat : BotCommand {
             }
         }
     }
+
+    private suspend fun LXVBot.displayBattleStats(mCE: MessageCreateEvent, userId: Snowflake) {
+        val key = UserGuildDate(userId, mCE.guildId!!, UserBattleCount.getDayId(mCE.message.id))
+        val col = db.getCollection<UserBattleCount>(UserBattleCount.DB_NAME)
+        val today = col.findOne(UserBattleCount::_id eq key) ?: UserBattleCount(key)
+        val yesterday = col.findOne(UserBattleCount::_id eq key.copy(dayId = key.dayId - 1)) ?: UserBattleCount(key)
+        val username = getUserFromDB(userId).username!!
+        val guildName = mCE.getGuild()!!.name
+        val avatar = client.getUser(userId)?.avatar?.url
+        sendMessage(mCE.message.channel) {
+            author {
+                name = "$username's Battles in $guildName"
+                icon = avatar
+            }
+            description = "__**Total**__: idk btw these aren't going to be saved after today\n"
+            field {
+                name = "Current Stats"
+                value = "__Today__: ${today.count}\n"
+            }
+            field {
+                name = "Past Stats"
+                value = "__Yesterday__: ${yesterday.count}\n"
+            }
+            color = Color(0xFEDCBA)
+
+        }
+    }
+
 }
