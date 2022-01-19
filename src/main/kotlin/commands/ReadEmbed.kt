@@ -32,12 +32,12 @@ object ReadEmbed : BotCommand {
             }
             val msg = client.rest.channel.getMessage(mCE.message.channelId, Snowflake(id))
             if (msg.embeds.isNotEmpty()) {
+//                println(msg.embeds.first())
                 if (msg.author.id == LXVBot.RPG_BOT_ID) {
                     handleEmbed(mCE, Embed(EmbedData.from(msg.embeds.first()), client))
                 } else {
                     reply(mCE.message, "```\n${msg.embeds.first()}\n```")
                 }
-                println(msg.embeds.first())
             }
         } else {
             reply(mCE.message, "haki only")

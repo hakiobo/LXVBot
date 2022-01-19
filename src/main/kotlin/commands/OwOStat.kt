@@ -17,7 +17,7 @@ object OwOStat : BotCommand {
     override val name: String
         get() = "owostat"
     override val aliases: List<String>
-        get() = listOf("owos", "ostat", "os")
+        get() = listOf("o", "owos", "ostat", "os", "stat", "s")
     override val category: CommandCategory
         get() = CommandCategory.GUILD
     override val description: String

@@ -18,7 +18,7 @@ object BattleStat : BotCommand {
     override val name: String
         get() = "battlestat"
     override val aliases: List<String>
-        get() = listOf("battles", "bs", "bstat", "stat", "s")
+        get() = listOf("b", "battles", "bs", "bstat")
     override val category: CommandCategory
         get() = CommandCategory.GUILD
     override val description: String
