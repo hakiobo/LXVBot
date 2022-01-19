@@ -9,7 +9,6 @@ import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
-import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.User
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.message.MessageCreateEvent
@@ -61,6 +60,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         PicBan,
         ReadEmbed,
         Logout,
+        BattleStat,
     )
 
     suspend fun startup() {
@@ -170,17 +170,10 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (embeds.isNotEmpty()) {
             val id = embeds.first().author?.iconUrl?.split("avatars/")?.last()?.split("/")?.first()?.toULongOrNull()
             val fields = embeds.first().fields
-
-            var isBattle = false
             if (id != null && fields.size >= 2) {
-                isBattle = if (fields.all { it.value.startsWith("L.") }) {
-                    true
-                } else {
-                    embeds.first().fields.all { it.value.startsWith("Lvl.") }
+                if(fields.all { it.value.startsWith("L.")} || fields.all { it.value.startsWith("Lvl.") }) {
+                    countBattle(mCE.message.id, Snowflake(id), mCE.guildId!!)
                 }
-            }
-            if (isBattle) {
-                countBattle(mCE.message.id, Snowflake(id!!), mCE.guildId!!)
             }
         }
     }
@@ -315,7 +308,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val OWO_ID = Snowflake(408785106942164992)
         val LEVEL_UP_CHANNEL_ID = Snowflake(763523136238780456)
         val LXV_BOT_UPDATE_CHANNEL_ID = Snowflake(816768818088116225)
-        val LXV_SERVER_ID = Snowflake(714152739252338749)
+        val LXV_GUILD_ID = Snowflake(714152739252338749)
         val RPG_PING_ROLE_ID = Snowflake(795936961344831549)
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"

@@ -38,5 +38,6 @@ data class UserBattleCount(
         fun getDayId(messageId: Snowflake): Int {
             return epoch.daysUntil(messageId.timestamp.toLocalDateTime(LXVBot.PST).date)
         }
+
     }
 }

@@ -6,7 +6,6 @@ import entities.ServerData
 import commands.util.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Permission
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.entity.channel.GuildMessageChannel
 import dev.kord.core.event.message.MessageCreateEvent
 import org.litote.kmongo.div
@@ -32,7 +31,7 @@ object AssignChannel : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if (mCE.guildId != LXVBot.LXV_SERVER_ID) {
+        if (mCE.guildId != LXVBot.LXV_GUILD_ID) {
             reply(mCE.message, "This only works in LXV")
             return
         }
@@ -51,7 +50,7 @@ object AssignChannel : BotCommand {
                     reply(mCE.message, "That user isn't valid")
                     return
                 }
-                if (channel == null || channel.guildId != LXVBot.LXV_SERVER_ID) {
+                if (channel == null || channel.guildId != LXVBot.LXV_GUILD_ID) {
                     reply(mCE.message, "That channel isn't valid")
                     return
                 }

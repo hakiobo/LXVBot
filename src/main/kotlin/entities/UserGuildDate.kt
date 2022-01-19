@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserGuildDate(
     val user: Snowflake,
-    val server: Snowflake,
+    val guild: Snowflake,
     val dayId: Int,
 )

@@ -31,7 +31,7 @@ object PicBan : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if (mCE.guildId != LXVBot.LXV_SERVER_ID) {
+        if (mCE.guildId != LXVBot.LXV_GUILD_ID) {
             reply(mCE.message, "This only works in LXV")
             return
         }

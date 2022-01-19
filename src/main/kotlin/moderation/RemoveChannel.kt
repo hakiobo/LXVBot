@@ -8,7 +8,6 @@ import commands.util.BotCommand
 import commands.util.CommandCategory
 import commands.util.CommandUsage
 import dev.kord.common.entity.Permission
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
@@ -29,7 +28,7 @@ object RemoveChannel : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if(mCE.guildId != LXVBot.LXV_SERVER_ID){
+        if(mCE.guildId != LXVBot.LXV_GUILD_ID){
             reply(mCE.message, "This only works in LXV")
             return
         }
