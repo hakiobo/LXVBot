@@ -71,9 +71,8 @@ object BattleStat : BotCommand {
                 UserBattleCount::_id / UserGuildDate::dayId lte endDate,
                 UserBattleCount::_id / UserGuildDate::dayId gte startDate,
             ),
-            group(null, CountContainer::_id sum UserBattleCount::count)
-        ).first()?._id ?: 0L
-
+            group(null, CountContainer::sum sum UserBattleCount::count)
+        ).first()?.sum ?: 0L
     }
 
     private suspend fun LXVBot.displayBattleStats(mCE: MessageCreateEvent, userId: Snowflake) {
@@ -114,4 +113,4 @@ object BattleStat : BotCommand {
 }
 
 @Serializable
-private data class CountContainer(val _id: Long)
+private data class CountContainer(val sum: Long)
