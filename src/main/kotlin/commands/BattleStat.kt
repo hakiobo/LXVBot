@@ -3,16 +3,17 @@ package commands
 import LXVBot
 import LXVBot.Companion.BOT_PREFIX
 import LXVBot.Companion.getUserIdFromString
+import LXVBot.Companion.toDate
 import commands.util.*
+import kotlinx.datetime.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.UserBattleCount
-import entities.UserGuildDate
-import kotlinx.serialization.Serializable
-import org.litote.kmongo.*
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.aggregate
+import entities.UserBattleCount.Companion.epoch
+import entities.UserBattleCount.Companion.getBattlesInRange
+import kotlinx.datetime.DateTimeUnit
+
 
 object BattleStat : BotCommand {
     override val name: String
@@ -57,35 +58,17 @@ object BattleStat : BotCommand {
         }
     }
 
-    private suspend fun LXVBot.getBattlesInRange(
-        col: CoroutineCollection<UserBattleCount>,
-        user: Snowflake,
-        guild: Snowflake,
-        startDate: Int,
-        endDate: Int
-    ): Long {
-        return col.aggregate<CountContainer>(
-            match(
-                UserBattleCount::_id / UserGuildDate::user eq user,
-                UserBattleCount::_id / UserGuildDate::guild eq guild,
-                UserBattleCount::_id / UserGuildDate::dayId lte endDate,
-                UserBattleCount::_id / UserGuildDate::dayId gte startDate,
-            ),
-            group(null, CountContainer::sum sum UserBattleCount::count)
-        ).first()?.sum ?: 0L
-    }
-
     private suspend fun LXVBot.displayBattleStats(mCE: MessageCreateEvent, userId: Snowflake) {
         val guildId = mCE.guildId!!
-        val todayId = UserBattleCount.getDayId(mCE.message.id)
+        val todayDate = mCE.message.id.toDate()
         val col = db.getCollection<UserBattleCount>(UserBattleCount.DB_NAME)
-        val today = getBattlesInRange(col, userId, guildId, todayId, todayId)
-        val week = getBattlesInRange(col, userId, guildId, todayId - 7 + 1, todayId)
-        val fortnight = getBattlesInRange(col, userId, guildId, todayId - 14 + 1, todayId)
-        val monthy = getBattlesInRange(col, userId, guildId, todayId - 30 + 1, todayId)
-        val quartery = getBattlesInRange(col, userId, guildId, todayId - 90 + 1, todayId)
-        val yeary = getBattlesInRange(col, userId, guildId, todayId - 365 + 1, todayId)
-        val total = getBattlesInRange(col, userId, guildId, 0, todayId)
+        val today = getBattlesInRange(col, userId, guildId, todayDate, todayDate)
+        val week = getBattlesInRange(col, userId, guildId, todayDate.minus(7 - 1, DateTimeUnit.DAY), todayDate)
+        val fortnight = getBattlesInRange(col, userId, guildId, todayDate.minus(14 - 1, DateTimeUnit.DAY), todayDate)
+        val monthy = getBattlesInRange(col, userId, guildId, todayDate.minus(30 - 1, DateTimeUnit.DAY), todayDate)
+        val quartery = getBattlesInRange(col, userId, guildId, todayDate.minus(90 - 1, DateTimeUnit.DAY), todayDate)
+        val yeary = getBattlesInRange(col, userId, guildId, todayDate.minus(365 - 1, DateTimeUnit.DAY), todayDate)
+        val total = getBattlesInRange(col, userId, guildId, epoch, todayDate)
 
 
         val username = getUserFromDB(userId).username!!
@@ -112,5 +95,3 @@ object BattleStat : BotCommand {
     }
 }
 
-@Serializable
-private data class CountContainer(val sum: Long)

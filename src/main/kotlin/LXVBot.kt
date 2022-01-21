@@ -21,7 +21,9 @@ import entities.StoredReminder
 import entities.UserBattleCount.Companion.countBattle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import moderation.AssignChannel
 import moderation.PicBan
 import moderation.RemoveChannel
@@ -61,6 +63,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         ReadEmbed,
         Logout,
         BattleStat,
+        BattleLeaderboard,
     )
 
     suspend fun startup() {
@@ -349,6 +352,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         }
 
         fun getCheckmarkOrCross(checkmark: Boolean): String = if (checkmark) CHECKMARK_EMOJI else CROSSMARK_EMOJI
+
+        fun Snowflake.toDate(): LocalDate = timestamp.toLocalDateTime(PST).date
     }
 
 }

@@ -18,14 +18,14 @@ object OwOLeaderboard : BotCommand {
     override val name: String
         get() = "owoleaderboard"
     override val aliases: List<String>
-        get() = listOf("owotop", "otop", "owoldb", "ldb", "top", "leaderboard")
+        get() = listOf("owotop", "otop", "ot", "t", "owoldb", "ldb", "top", "leaderboard")
     override val description: String
         get() = "Show the owo leaderboard for this server"
     override val category: CommandCategory
         get() = CommandCategory.GUILD
 
-    private fun findType(s: String): RankingType? {
-        for (t in RankingType.values()) {
+    private fun findType(s: String): OwORankingType? {
+        for (t in OwORankingType.values()) {
             if (s.lowercase() in t.triggers) {
                 return t
             }
@@ -35,7 +35,7 @@ object OwOLeaderboard : BotCommand {
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         if (args.size <= 3) {
-            var type = RankingType.TOTAL
+            var type = OwORankingType.TOTAL
             var size = 5
             var page = 1
             var typeSet = false
@@ -45,7 +45,6 @@ object OwOLeaderboard : BotCommand {
             for (a in args) {
                 val arg = a.lowercase()
                 if (arg.toIntOrNull() != null) {
-                    if (arg.startsWith("p")) sendMessage(mCE.message.channel, "This is dumb")
                     if (sizeSet) {
                         valid = false
                     } else {
@@ -81,7 +80,7 @@ object OwOLeaderboard : BotCommand {
                 val result = type.interval.getIdDataPairs(this, mCE, type.unit, size, page)
 
                 val filters = List(result.size) {
-                    LXVUser::_id eq  result[it].first
+                    LXVUser::_id eq result[it].first
                 }
 
                 val names = userCol.find(or(filters)).toList()
@@ -294,7 +293,7 @@ object OwOLeaderboard : BotCommand {
         ): List<Pair<Snowflake, Int>>
     }
 
-    private enum class RankingType(
+    private enum class OwORankingType(
         val triggers: List<String>,
         val desc: String,
         val interval: IntervalType,
