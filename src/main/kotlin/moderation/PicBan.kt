@@ -48,8 +48,8 @@ object PicBan : BotCommand {
             val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
             if (args.size == 1) {
                 val lxvUser = getUserFromDB(userId!!, member)
-                if (Snowflake(CAMERA_ROLE_ID) in member.roleIds) {
-                    member.removeRole(Snowflake(CAMERA_ROLE_ID), "User has been pic banned")
+                if (CAMERA_ROLE_ID in member.roleIds) {
+                    member.removeRole(CAMERA_ROLE_ID, "User has been pic banned")
                 }
                 if (lxvUser.serverData.picBanned) {
                     reply(mCE.message, "User already pic banned")
@@ -60,8 +60,8 @@ object PicBan : BotCommand {
             } else {
                 if (args[1].lowercase() == "unban") {
                     val lxvUser = getUserFromDB(userId!!, member)
-                    if (lxvUser.serverData.mee6Level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in member.roleIds) {
-                        member.addRole(Snowflake(CAMERA_ROLE_ID), "User has been pic unbanned")
+                    if (lxvUser.serverData.mee6Level >= CAMERA_ROLE_LEVEL && CAMERA_ROLE_ID !in member.roleIds) {
+                        member.addRole(CAMERA_ROLE_ID, "User has been pic unbanned")
                     }
                     if (lxvUser.serverData.picBanned) {
                         col.updateOne(
