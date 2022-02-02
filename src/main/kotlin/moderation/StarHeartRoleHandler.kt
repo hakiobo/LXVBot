@@ -24,7 +24,7 @@ val LEVEL_ROLE_IDS = listOf(
     Snowflake(806927068255879199),
 )
 
-const val CAMERA_ROLE_ID = 714185072911056956
+val CAMERA_ROLE_ID = Snowflake(714185072911056956)
 const val CAMERA_ROLE_LEVEL = 5
 
 suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
@@ -57,10 +57,10 @@ suspend fun LXVBot.handleMee6LevelUpMessage(mCE: MessageCreateEvent) {
         val curRoles = member.roleIds
 
 
-        if (level >= CAMERA_ROLE_LEVEL && Snowflake(CAMERA_ROLE_ID) !in curRoles && !lxvUser.serverData.picBanned) {
-            member.addRole(Snowflake(CAMERA_ROLE_ID), "They reached level $CAMERA_ROLE_LEVEL or higher in Mee6")
-        } else if (lxvUser.serverData.picBanned && Snowflake(CAMERA_ROLE_ID) in curRoles) {
-            member.removeRole(Snowflake(CAMERA_ROLE_ID), "User is banned from camera role")
+        if (level >= CAMERA_ROLE_LEVEL && CAMERA_ROLE_ID !in curRoles && !lxvUser.serverData.picBanned) {
+            member.addRole(CAMERA_ROLE_ID, "They reached level $CAMERA_ROLE_LEVEL or higher in Mee6")
+        } else if (lxvUser.serverData.picBanned && CAMERA_ROLE_ID in curRoles) {
+            member.removeRole(CAMERA_ROLE_ID, "User is banned from camera role")
         }
 
 

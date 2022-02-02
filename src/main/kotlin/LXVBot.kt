@@ -138,6 +138,12 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.author?.id == OWO_ID) {
             handleOwOMessage(mCE)
         }
+        if (mCE.message.channelId == VERIFY_CHANNEL_ID && mCE.message.content.lowercase() == "owo") {
+            val roles = mCE.member!!.roleIds
+            if (OWO_ACCESS_ROLE_ID !in roles && OWO_VERIFY_ROLE_ID !in roles) {
+                mCE.member!!.addRole(OWO_VERIFY_ROLE_ID, "They said owo in <#$VERIFY_CHANNEL_ID>")
+            }
+        }
         if (mCE.message.author?.isBot == true) return
         if (mCE.guildId == null) {
             sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
@@ -307,15 +313,28 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         const val TACO_SHACK_PREFIX = "ts"
         val LXV_DB_NAME = System.getenv("lxv-db-name")!!
         val HAKI_DB_NAME = System.getenv("haki-db-name")!!
+
+        // user ids
         val HAKI_ID = Snowflake(292483348738080769)
         val ERYS_ID = Snowflake(412812867348463636)
         val MEE6_ID = Snowflake(159985870458322944)
         val RPG_BOT_ID = Snowflake(555955826880413696)
         val OWO_ID = Snowflake(408785106942164992)
+
+        // channel ids
         val LEVEL_UP_CHANNEL_ID = Snowflake(763523136238780456)
         val LXV_BOT_UPDATE_CHANNEL_ID = Snowflake(816768818088116225)
+        val VERIFY_CHANNEL_ID = Snowflake(841698006800793620)
+
+        // guild ids
         val LXV_GUILD_ID = Snowflake(714152739252338749)
+
+        // role ids
+        val OWO_VERIFY_ROLE_ID = Snowflake(898930007324364810)
+        val OWO_ACCESS_ROLE_ID = Snowflake(898930007324364810)
         val RPG_PING_ROLE_ID = Snowflake(795936961344831549)
+
+
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 
