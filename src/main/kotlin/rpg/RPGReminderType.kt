@@ -120,16 +120,17 @@ enum class RPGReminderType(
             }
         }
     },
-    MINIBOSS(listOf("miniboss", "not", "dungeon"), 12 * 3600_000, true, 1) {
+    MINIBOSS(listOf("miniboss", "not", "dungeon"), 12 * 3600_000, true, 2) {
         override fun validate(args: List<String>): Boolean {
             return if (args.first().lowercase() == "miniboss" || args.first().lowercase() == "dungeon") {
                 true
             } else {
-                args.size >= 4
+                args.size >= 5
                         && args.first().lowercase() == "not"
                         && args[1].lowercase() == "so"
                         && args[2].lowercase() == "mini"
                         && args[3].lowercase() == "boss"
+                        && args[4].lowercase() == "join"
             }
         }
     },
@@ -155,7 +156,7 @@ enum class RPGReminderType(
         get() = aliases.first()
 
     companion object {
-        val EVENT_BONUSES = listOf(1.0, 1.0, 1.0)
+        val EVENT_BONUSES = listOf(1.0, 1.0, 0.75)
 
         fun findReminder(name: String): RPGReminderType? {
             val cmd = name.lowercase()
