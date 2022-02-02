@@ -330,8 +330,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val LXV_GUILD_ID = Snowflake(714152739252338749)
 
         // role ids
-        val OWO_VERIFY_ROLE_ID = Snowflake(898930007324364810)
-        val OWO_ACCESS_ROLE_ID = Snowflake(898930007324364810)
+        val OWO_VERIFY_ROLE_ID = Snowflake(841696472461344858)
+        val OWO_ACCESS_ROLE_ID = Snowflake(714173846873309224)
         val RPG_PING_ROLE_ID = Snowflake(795936961344831549)
 
 
