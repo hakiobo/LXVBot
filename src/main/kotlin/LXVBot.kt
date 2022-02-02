@@ -141,7 +141,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.channelId == VERIFY_CHANNEL_ID && mCE.message.content.lowercase() == "owo") {
             val roles = mCE.member!!.roleIds
             if (OWO_ACCESS_ROLE_ID !in roles && OWO_VERIFY_ROLE_ID !in roles) {
-                mCE.member!!.addRole(OWO_VERIFY_ROLE_ID, "They said owo in <#$VERIFY_CHANNEL_ID>")
+                mCE.member!!.addRole(OWO_VERIFY_ROLE_ID, "They said owo in #verify")
             }
         }
         if (mCE.message.author?.isBot == true) return
