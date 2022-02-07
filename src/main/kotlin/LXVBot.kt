@@ -138,13 +138,13 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.author?.id == OWO_ID) {
             handleOwOMessage(mCE)
         }
+        if (mCE.message.author?.isBot == true) return
         if (mCE.message.channelId == VERIFY_CHANNEL_ID && mCE.message.content.lowercase() == "owo") {
             val roles = mCE.member!!.roleIds
             if (OWO_ACCESS_ROLE_ID !in roles && OWO_VERIFY_ROLE_ID !in roles) {
                 mCE.member!!.addRole(OWO_VERIFY_ROLE_ID, "They said owo in #verify")
             }
         }
-        if (mCE.message.author?.isBot == true) return
         if (mCE.guildId == null) {
             sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
             return
@@ -152,7 +152,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.content.startsWith("$RPG_PREFIX ", true)) {
             handleRPGCommand(mCE)
         }
-        if (mCE.message.content.startsWith(TACO_SHACK_PREFIX, false)) {
+        if (mCE.message.content.startsWith(TACO_SHACK_PREFIX, true)) {
             handleTacoCommand(
                 mCE, mCE.message.content.drop(TACO_SHACK_PREFIX.length).trim().split(Pattern.compile("\\s+"))
             )
