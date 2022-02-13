@@ -7,7 +7,7 @@ enum class RPGReminderType(
     val eventMultId: Int,
     val emoji: String = ""
 ) {
-    HUNT(listOf("hunt"), 60_000, true, 2, "<a:hunt:820275884245385236>") {
+    HUNT(listOf("hunt"), 60_000, true, 1, "<a:hunt:820275884245385236>") {
         override fun getResponseName(args: List<String>): String {
             return if (args.drop(1).firstOrNull()?.lowercase() in listOf("t", "together")
                 || args.drop(2).firstOrNull()?.lowercase() in listOf("t", "together")
@@ -21,7 +21,7 @@ enum class RPGReminderType(
     FARM(listOf("farm"), 10 * 60_000, true, 2, "<a:farm:824514270406377472>"),
     DAILY(listOf("daily"), (23 * 60 + 50) * 60_000, false, 0, "<a:daily:820280260163534868>"),
     WEEKLY(listOf("weekly"), ((6 * 24 + 23) * 60 + 50) * 60_000, false, 0, "<a:daily:820280260163534868>"),
-    ADVENTURE(listOf("adventure", "adv"), 3600_000, true, 2, "<a:adv:820275948053463050>"),
+    ADVENTURE(listOf("adventure", "adv"), 3600_000, true, 3, "<a:adv:820275948053463050>"),
     PET_ADVENTURE(listOf("pet", "pets"), 4 * 3600_000, false, 0, "<a:pets:820275963220197376>") {
         private val petAdvTypes = listOf("find", "learn", "drill")
         override fun validate(args: List<String>): Boolean {
@@ -156,7 +156,7 @@ enum class RPGReminderType(
         get() = aliases.first()
 
     companion object {
-        val EVENT_BONUSES = listOf(1.0, 1.0, 0.75)
+        val EVENT_BONUSES = listOf(1.0, 0.75, 1.0, 0.9)
 
         fun findReminder(name: String): RPGReminderType? {
             val cmd = name.lowercase()
