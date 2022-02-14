@@ -178,12 +178,15 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val embeds = mCE.message.embeds
         if (embeds.isNotEmpty()) {
             val id = embeds.first().author?.iconUrl?.split("avatars/")?.last()?.split("/")?.first()?.toULongOrNull()
+            val authorText = embeds.first().author?.name
             val fields = embeds.first().fields
             val desc = embeds.first().description
             if (id != null && fields.size >= 2) {
                 if (fields.all { it.value.startsWith("L.") } || fields.all { it.value.startsWith("Lvl.") }) {
                     if (desc?.startsWith("Bet amount: ") != true && desc?.endsWith("\n`owo db` to decline the battle!") != true) {
-                        countBattle(mCE.message.id, Snowflake(id), mCE.guildId!!)
+                        if (authorText?.endsWith("'s pets") != true) {
+                            countBattle(mCE.message.id, Snowflake(id), mCE.guildId!!)
+                        }
                     }
                 }
             }
