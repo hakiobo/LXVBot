@@ -63,11 +63,20 @@ object BattleStat : BotCommand {
         val todayDate = mCE.message.id.toDate()
         val col = db.getCollection<UserBattleCount>(UserBattleCount.DB_NAME)
         val today = getBattlesInRange(col, userId, guildId, todayDate, todayDate)
-        val week = getBattlesInRange(col, userId, guildId, todayDate.minus(7 - 1, DateTimeUnit.DAY), todayDate)
-        val fortnight = getBattlesInRange(col, userId, guildId, todayDate.minus(14 - 1, DateTimeUnit.DAY), todayDate)
-        val monthy = getBattlesInRange(col, userId, guildId, todayDate.minus(30 - 1, DateTimeUnit.DAY), todayDate)
-        val quartery = getBattlesInRange(col, userId, guildId, todayDate.minus(90 - 1, DateTimeUnit.DAY), todayDate)
-        val yeary = getBattlesInRange(col, userId, guildId, todayDate.minus(365 - 1, DateTimeUnit.DAY), todayDate)
+
+        val thisWeek = getBattlesInRange(col, userId, guildId, todayDate.startOfWeek(), todayDate.endOfWeek())
+        val thisMonth = getBattlesInRange(col, userId, guildId, todayDate.startOfMonth(), todayDate.endOfMonth())
+        val thisYear = getBattlesInRange(col, userId, guildId, todayDate.startOfYear(), todayDate.endOfYear())
+        val yesterday = getBattlesInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.minus(DateTimeUnit.DAY),
+            todayDate.minus(DateTimeUnit.DAY)
+        )
+        val lastWeek = getBattlesInRange(col, userId, guildId, todayDate.startOfWeek(1), todayDate.endOfWeek(1))
+        val lastMonth = getBattlesInRange(col, userId, guildId, todayDate.startOfMonth(1), todayDate.endOfMonth(1))
+        val lastYear = getBattlesInRange(col, userId, guildId, todayDate.startOfYear(1), todayDate.endOfYear(1))
         val total = getBattlesInRange(col, userId, guildId, epoch, todayDate)
 
 
@@ -83,11 +92,16 @@ object BattleStat : BotCommand {
             field {
                 name = "Current Stats"
                 value = "__Today__: $today\n" +
-                        "__Past   7 days__: $week\n" +
-                        "__Past  14 days__: $fortnight\n" +
-                        "__Past  30 days__: $monthy\n" +
-                        "__Past  90 days__: $quartery\n" +
-                        "__Past 365 days__: $yeary\n"
+                        "__This Week__: $thisWeek\n" +
+                        "__This Month__: $thisMonth\n" +
+                        "__This Year__: $thisYear\n"
+            }
+            field {
+                name = "Past Stats"
+                value = "__Yesterday__: $yesterday\n" +
+                        "__Last Week__: $lastWeek\n" +
+                        "__Last Month__: $lastMonth\n" +
+                        "__Last Year__: $lastYear\n"
             }
 
             color = Color(0xFEDCBA)

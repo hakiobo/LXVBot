@@ -3,8 +3,7 @@ package commands
 import LXVBot
 import LXVBot.Companion.PST
 import LXVBot.Companion.toDate
-import commands.util.BotCommand
-import commands.util.CommandCategory
+import commands.util.*
 import dev.kord.common.Color
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.LXVUser
@@ -74,21 +73,18 @@ object BattleLeaderboard : BotCommand {
                                 titleToUse = "Yesterday's "
                             }
                             "month", "m", "monthly" -> {
-                                startDate = today.toJavaLocalDate().withDayOfMonth(1).toKotlinLocalDate()
-                                endDate = today.plus(DateTimeUnit.MONTH).toJavaLocalDate().withDayOfMonth(1)
-                                    .toKotlinLocalDate().minus(DateTimeUnit.DAY)
+                                startDate = today.startOfMonth()
+                                endDate = today.endOfMonth()
                                 titleToUse = "${today.month.name.lowercase().replaceFirstChar { it.uppercase() }}'s "
                             }
                             "weekly", "w" -> {
-                                startDate = today.minus(today.dayOfWeek.value % 7, DateTimeUnit.DAY)
-                                endDate = today.plus(6 - (today.dayOfWeek.value % 7), DateTimeUnit.DAY)
+                                startDate = today.startOfWeek()
+                                endDate = today.endOfWeek()
                                 titleToUse = "This Weeks's "
                             }
                             "yearly", "year" -> {
-                                startDate = today.toJavaLocalDate().withDayOfYear(1).toKotlinLocalDate()
-                                endDate =
-                                    today.plus(DateTimeUnit.YEAR).toJavaLocalDate().withDayOfYear(1).toKotlinLocalDate()
-                                        .minus(DateTimeUnit.DAY)
+                                startDate = today.startOfYear()
+                                endDate = today.endOfYear()
                                 titleToUse = "This Year's "
                             }
                             else -> titleSet = false
