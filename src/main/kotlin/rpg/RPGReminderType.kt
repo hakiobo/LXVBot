@@ -156,7 +156,7 @@ enum class RPGReminderType(
         get() = aliases.first()
 
     companion object {
-        val EVENT_BONUSES = listOf(1.0, 0.75, 1.0, 0.9)
+        val EVENT_BONUSES = listOf(1.0, 1.0, 1.0, 1.0)
 
         fun findReminder(name: String): RPGReminderType? {
             val cmd = name.lowercase()
