@@ -6,7 +6,7 @@ fun LocalDate.startOfWeek(weeksBack: Int = 0): LocalDate =
     this.minus(7 * weeksBack + (this.dayOfWeek.value % 7), DateTimeUnit.DAY)
 
 fun LocalDate.endOfWeek(weeksBack: Int = 0): LocalDate =
-    this.plus(7 * weeksBack + 6 - (this.dayOfWeek.value % 7), DateTimeUnit.DAY)
+    this.plus(-7 * weeksBack + 6 - (this.dayOfWeek.value % 7), DateTimeUnit.DAY)
 
 fun LocalDate.startOfMonth(monthsBack: Int = 0): LocalDate =
     this.minus(monthsBack, DateTimeUnit.MONTH).toJavaLocalDate().withDayOfMonth(1).toKotlinLocalDate()

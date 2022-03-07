@@ -77,15 +77,32 @@ object BattleLeaderboard : BotCommand {
                                 endDate = today.endOfMonth()
                                 titleToUse = "${today.month.name.lowercase().replaceFirstChar { it.uppercase() }}'s "
                             }
+                            "lm" -> {
+                                startDate = today.startOfMonth(1)
+                                endDate = today.startOfMonth(1)
+                                titleToUse = "${
+                                    today.startOfMonth(1).month.name.lowercase().replaceFirstChar { it.uppercase() }
+                                }'s "
+                            }
                             "weekly", "w" -> {
                                 startDate = today.startOfWeek()
                                 endDate = today.endOfWeek()
                                 titleToUse = "This Weeks's "
                             }
+                            "lw" -> {
+                                startDate = today.startOfWeek(1)
+                                endDate = today.endOfWeek(1)
+                                titleToUse = "Last Weeks's "
+                            }
                             "yearly", "year" -> {
                                 startDate = today.startOfYear()
                                 endDate = today.endOfYear()
                                 titleToUse = "This Year's "
+                            }
+                            "ly" -> {
+                                startDate = today.startOfYear(1)
+                                endDate = today.endOfYear(1)
+                                titleToUse = "Last Year's "
                             }
                             else -> titleSet = false
                         }
