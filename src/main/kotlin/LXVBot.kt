@@ -135,7 +135,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.author?.id == RPG_BOT_ID) {
             handleRPGMessage(mCE)
         }
-        if (mCE.message.author?.id == OWO_ID) {
+        if (mCE.message.author?.id == OWO_ID || mCE.message.webhookId == OWO_ID) {
             handleOwOMessage(mCE)
         }
         if (mCE.message.author?.isBot == true) return

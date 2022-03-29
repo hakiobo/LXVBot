@@ -12,6 +12,8 @@ import rpg.RPGCommand
 import rpg.RPGCommand.handleEmbed
 
 object ReadEmbed : BotCommand {
+    private const val MSG_LIMIT = 1900
+
     override val name: String
         get() = "readembed"
     override val description: String
@@ -36,7 +38,13 @@ object ReadEmbed : BotCommand {
                 if (msg.author.id == LXVBot.RPG_BOT_ID) {
                     handleEmbed(mCE, Embed(EmbedData.from(msg.embeds.first()), client))
                 } else {
-                    reply(mCE.message, "```\n${msg.embeds.first()}\n```")
+                    val str = msg.embeds.first().toString()
+                    var offset = 0
+                    while (str.length - offset > MSG_LIMIT) {
+                        reply(mCE.message, "```\n${str.substring(offset, offset + MSG_LIMIT)}\n```")
+                        offset += MSG_LIMIT
+                    }
+                    reply(mCE.message, "```\n${str.substring(offset)}\n```")
                 }
             }
         } else {
