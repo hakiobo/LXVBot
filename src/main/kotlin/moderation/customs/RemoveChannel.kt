@@ -1,4 +1,4 @@
-package moderation
+package moderation.customs
 
 import LXVBot
 import entities.LXVUser
@@ -15,11 +15,11 @@ import org.litote.kmongo.setValue
 
 object RemoveChannel : BotCommand {
     override val name: String
-        get() = "revokecustom"
+        get() = "revokechannel"
     override val description: String
-        get() = "Takes away the given user's custome channel"
+        get() = "Takes away the given user's custom channel"
     override val aliases: List<String>
-        get() = listOf("rc")
+        get() = listOf("removechannel")
     override val category: CommandCategory
         get() = CommandCategory.MODERATION
     override val usages: List<CommandUsage>
@@ -47,7 +47,7 @@ object RemoveChannel : BotCommand {
                 val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
                 val lxvUser = getUserFromDB(userId, user, col)
                 if (lxvUser.serverData.customChannel == null) {
-                    reply(mCE.message, "That User doesn't have a custom channel")
+                    reply(mCE.message, "<@$userId> doesn't have a custom channel")
                 } else {
                     col.updateOne(
                         LXVUser::_id eq userId,

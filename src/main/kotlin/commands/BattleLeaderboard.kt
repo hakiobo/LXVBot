@@ -79,7 +79,7 @@ object BattleLeaderboard : BotCommand {
                             }
                             "lm" -> {
                                 startDate = today.startOfMonth(1)
-                                endDate = today.startOfMonth(1)
+                                endDate = today.endOfMonth(1)
                                 titleToUse = "${
                                     today.startOfMonth(1).month.name.lowercase().replaceFirstChar { it.uppercase() }
                                 }'s "

@@ -1,6 +1,7 @@
 package commands.util
 
 import LXVBot
+import dev.kord.common.entity.Permission
 import dev.kord.core.event.message.MessageCreateEvent
 
 interface BotCommand {
@@ -16,6 +17,22 @@ interface BotCommand {
 
     suspend fun runCMD(bot: LXVBot, mCE: MessageCreateEvent, args: List<String>) {
         bot.cmd(mCE, args)
+    }
+
+    suspend fun LXVBot.requireLXVGuild(mCE: MessageCreateEvent, msg: String = "This only works in LXV"): Boolean {
+        if (mCE.guildId != LXVBot.LXV_GUILD_ID) {
+            reply(mCE.message, msg)
+            return true
+        }
+        return false
+    }
+
+    suspend fun LXVBot.requireAdmin(mCE: MessageCreateEvent, msg: String = "Admins only smh"): Boolean {
+        if (Permission.Administrator !in mCE.member!!.getPermissions()) {
+            reply(mCE.message, msg)
+            return true
+        }
+        return false
     }
 
     suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>)

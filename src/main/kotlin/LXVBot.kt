@@ -24,9 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import moderation.AssignChannel
 import moderation.PicBan
-import moderation.RemoveChannel
+import moderation.customs.*
 import moderation.handleMee6LevelUpMessage
 import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
@@ -64,7 +63,11 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         Logout,
         BattleStat,
         BattleLeaderboard,
-    )
+        AssignRole,
+        RemoveRole,
+        RoleColor,
+        RoleName,
+        )
 
     suspend fun startup() {
         client.on<ReadyEvent> {
@@ -192,7 +195,6 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             }
         }
     }
-//        reply(mCE.message)
 
 
     internal suspend inline fun reply(
@@ -215,6 +217,14 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                     add(AllowedMentionType.UserMentions)
                 }
             }
+            embed(embedBuilder)
+        }
+    }
+
+    internal suspend inline fun log(
+        embedBuilder: EmbedBuilder.() -> Unit,
+    ) {
+        client.rest.channel.createMessage(LOG_CHANNEL_ID) {
             embed(embedBuilder)
         }
     }
@@ -328,6 +338,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val LEVEL_UP_CHANNEL_ID = Snowflake(763523136238780456)
         val LXV_BOT_UPDATE_CHANNEL_ID = Snowflake(816768818088116225)
         val VERIFY_CHANNEL_ID = Snowflake(841698006800793620)
+        val LOG_CHANNEL_ID = Snowflake(991966009441406976)
 
         // guild ids
         val LXV_GUILD_ID = Snowflake(714152739252338749)
@@ -371,6 +382,19 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                 null
             }
             return if (id == null) null else Snowflake(id)
+        }
+
+        fun getRoleIdFromString(s: String?): Snowflake? {
+            val id = if (s == null) {
+                null
+            } else if (s.toULongOrNull() != null) {
+                s.toULong()
+            } else if (s.startsWith("<@&") && s.endsWith(">")) {
+                s.drop(3).dropLast(1).toULongOrNull()
+            } else {
+                null
+            }
+            return if (id == null) null else Snowflake((id))
         }
 
         fun getCheckmarkOrCross(checkmark: Boolean): String = if (checkmark) CHECKMARK_EMOJI else CROSSMARK_EMOJI

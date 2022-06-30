@@ -371,7 +371,7 @@ object RPGCommand : BotCommand {
                 )
             }
             embed.footer?.text == "Type \"info\" to get information about pets" -> {
-                var (happiness, hunger) = field!!.value.split("\n").map { it.split("**").last().trim().toInt() }
+                var (happiness, hunger) = field!!.value.split("\n").map { it.split(":").last().trim().toInt() }
                 val actions = mutableListOf<String>()
                 reply(mCE.message) {
                     title = "Pet Taming Helper"
