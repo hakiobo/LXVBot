@@ -198,7 +198,7 @@ object TacoCommand : BotCommand {
                 "Current TacoShack Donator Level is ${user.taco.donorLevel.replaceFirstChar { it.uppercase() }}"
             )
         } else {
-            val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].lowercase().replaceFirstChar { it.uppercase() })
+            val newLevel = TacoPatreonLevel.findPatreonLevel(args[1].lowercase())
             userCol.updateOne(LXVUser::_id eq user._id, setValue(LXVUser::taco / TacoData::donorLevel, newLevel.id))
             reply(mCE.message, "TacoShack Donator level set to ${newLevel.getFormattedName()}")
         }

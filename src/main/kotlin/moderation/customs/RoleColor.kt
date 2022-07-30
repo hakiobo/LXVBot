@@ -6,13 +6,13 @@ import dev.kord.common.Color
 import dev.kord.core.behavior.edit
 import dev.kord.core.event.message.MessageCreateEvent
 
-object RoleColor: BotCommand {
+object RoleColor : BotCommand {
     override val name: String
         get() = "rolecolor"
     override val description: String
         get() = "Change your custom role color"
     override val aliases: List<String>
-        get() = listOf("rcolor")
+        get() = listOf("rcolor", "rcolour", "rolecolour")
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         if (requireLXVGuild(mCE)) return
@@ -28,7 +28,7 @@ object RoleColor: BotCommand {
             return
         }
         if (args.isEmpty()) {
-            reply(mCE.message, "Your current Role color is ${realRole.color}")
+            reply(mCE.message, "Your current Role color is #${realRole.color.rgb.toString(16)}")
             return
         } else if (args.size != 1) {
             reply(mCE.message, "Invalid format")

@@ -61,6 +61,7 @@ object AssignRole : BotCommand {
             )
             val desc = StringBuilder("Assigned Role: <@&$roleId>\n")
             desc.appendLine("To <@${userId}> <@${LXVBot.MEE6_ID}> Level: ${lxvUser.serverData.mee6Level}")
+            desc.appendLine("By ${mCE.message.author!!.mention}")
             if (lxvUser.serverData.customRole != null) {
                 desc.append("Previous Role: <@&${lxvUser.serverData.customChannel}>\n")
             }
@@ -91,10 +92,5 @@ object AssignRole : BotCommand {
                 }
             }
         }
-
-
-
-
-
     }
 }

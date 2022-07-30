@@ -58,7 +58,7 @@ object RemoveRole : BotCommand {
             }
             log {
                 title = "Custom Role Removed"
-                description = "Removed Role: <@&${lxvUser.serverData.customRole}> from <@$userId>"
+                description = "Removed Role: <@&${lxvUser.serverData.customRole}> from <@$userId> by ${mCE.message.author!!.mention}"
             }
             val member = user.asMemberOrNull(mCE.guildId!!)
             member?.removeRole(lxvUser.serverData.customRole, "Custom Role Removed")

@@ -55,6 +55,10 @@ object RoleName : BotCommand {
                 value = newName
                 inline = true
             }
+            field {
+                name = "Changed by"
+                value = "<@${lxvUser._id}>"
+            }
         }
 
     }
