@@ -41,6 +41,7 @@ object OwOLeaderboard : BotCommand {
             var typeSet = false
             var sizeSet = false
             var pageSet = false
+            var showIds = false
             var valid = true
             for (a in args) {
                 val arg = a.lowercase()
@@ -58,6 +59,8 @@ object OwOLeaderboard : BotCommand {
                         page = arg.drop(1).toInt()
                         pageSet = true
                     }
+                } else if (arg == "id") {
+                    if (showIds) valid = false else showIds = true
                 } else {
                     if (typeSet) {
                         valid = false
@@ -84,10 +87,14 @@ object OwOLeaderboard : BotCommand {
                 }
 
                 val names = userCol.find(or(filters)).toList()
-                val usernames = result.map { res ->
-                    names.find { user ->
-                        user._id == res.first
-                    }?.username ?: getUserFromDB(res.first, col = userCol).username
+                val usernames = if (showIds) {
+                    result.map { res -> res.first }
+                } else {
+                    result.map { res ->
+                        names.find { user ->
+                            user._id == res.first
+                        }?.username ?: getUserFromDB(res.first, col = userCol).username
+                    }
                 }
 
                 val guildName = mCE.getGuild()?.name ?: "No Name????"

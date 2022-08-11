@@ -33,11 +33,13 @@ object BattleLeaderboard : BotCommand {
         var endDate = today
         var titleToUse = ""
         var titleSet = true
+        var showIds = false
 
-        if (args.size <= 3) {
+        if (args.size <= 4) {
             var typeSet = false
             var sizeSet = false
             var pageSet = false
+
 
             for (a in args) {
                 val arg = a.lowercase()
@@ -55,6 +57,11 @@ object BattleLeaderboard : BotCommand {
                         page = arg.drop(1).toInt()
                         pageSet = true
                     }
+                } else if (arg == "id") {
+                    if (showIds) {
+                        valid = false
+                    }
+                    showIds = true
                 } else {
                     if (typeSet) {
                         valid = false
@@ -136,8 +143,6 @@ object BattleLeaderboard : BotCommand {
                     }
                 }
             }
-
-
         } else {
             valid = false
         }
@@ -157,11 +162,17 @@ object BattleLeaderboard : BotCommand {
 
 
             val names = userCol.find(or(filters)).toList()
-            val usernames = result.map { res ->
-                names.find { user ->
-                    user._id == res._id
-                }?.username ?: getUserFromDB(res._id, col = userCol).username
+
+            val usernames = if (showIds) {
+                result.map { res -> res._id }
+            } else {
+                result.map { res ->
+                    names.find { user ->
+                        user._id == res._id
+                    }?.username ?: getUserFromDB(res._id, col = userCol).username
+                }
             }
+
 
             val guildName = mCE.getGuild()?.name ?: "No Name????"
             sendMessage(mCE.message.channel) {
