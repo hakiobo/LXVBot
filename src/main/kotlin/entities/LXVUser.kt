@@ -2,6 +2,7 @@ package entities
 
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
+import owo.OwOData
 import rpg.RPGData
 import taco.TacoData
 
@@ -11,6 +12,7 @@ data class LXVUser(
     val username: String? = null,
     val rpg: RPGData = RPGData(),
     val taco: TacoData = TacoData(),
+    val owo: OwOData = OwOData(),
     val serverData: ServerData = ServerData(),
 ) {
     companion object {

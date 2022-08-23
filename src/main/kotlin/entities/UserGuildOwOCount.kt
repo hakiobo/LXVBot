@@ -25,9 +25,9 @@ data class UserGuildOwOCount(
     var lastOWO: Long = 0L,
 ) {
 
-    fun normalize(mCE: MessageCreateEvent): Boolean {
+    fun normalize(timestamp: Instant): Boolean {
 
-        val curTime = mCE.message.id.timestamp.toLocalDateTime(LXVBot.PST).date
+        val curTime = timestamp.toLocalDateTime(LXVBot.PST).date
         val oldTime = Instant.fromEpochMilliseconds(lastOWO).toLocalDateTime(LXVBot.PST).date
 
         when (curTime.year - oldTime.year) {

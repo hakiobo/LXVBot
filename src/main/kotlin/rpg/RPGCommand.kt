@@ -290,14 +290,8 @@ object RPGCommand : BotCommand {
     }
 
     internal suspend fun LXVBot.handleRPGCommand(mCE: MessageCreateEvent) {
-        val args = run {
-            val a = mCE.message.content.split(Pattern.compile("\\s+")).drop(1)
-            if (a.firstOrNull()?.lowercase() == "ascended") {
-                a.drop(1).map { it.lowercase() }
-            } else {
-                a.map { it.lowercase() }
-            }
-        }
+        val args = mCE.message.content.split(Pattern.compile("\\s+")).drop(1).map { it.lowercase() }
+
         val reminder = RPGReminderType.findValidReminder(args)
         if (reminder != null) {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
@@ -306,7 +300,7 @@ object RPGCommand : BotCommand {
             val curTime = mCE.message.id.timestamp.toEpochMilliseconds()
             val pMult = if (reminder.patreonAffected) user.rpg.patreonMult else 1.0
             val eMult = RPGReminderType.EVENT_BONUSES[reminder.eventMultId]
-            val dif = if (reminder.id == "hunt") {
+            val dif = if (reminder == RPGReminderType.HUNT) {
                 if (args.drop(1).firstOrNull()?.lowercase() in togetherAliases) {
                     reminder.cooldownMS * max(user.rpg.patreonMult, user.rpg.partnerPatreon) * eMult
                 } else if (args.drop(1).firstOrNull()?.lowercase() in hardmodeAliases && args.drop(2).firstOrNull()

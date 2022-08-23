@@ -2,15 +2,15 @@ package commands
 
 import LXVBot
 import LXVBot.Companion.PST
-import LXVBot.Companion.toDate
+import LXVBot.Companion.toOwODate
 import commands.util.*
 import dev.kord.common.Color
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.LXVUser
-import entities.UserBattleCount
-import entities.UserBattleCount.Companion.epoch
-import entities.UserBattleCount.Companion.getDayId
-import entities.UserBattleCount.Companion.getLeaderboardBattlesInRange
+import entities.UserDailyStats
+import entities.UserDailyStats.Companion.epoch
+import entities.UserDailyStats.Companion.getDayId
+import entities.UserDailyStats.Companion.getLeaderboardStatInRange
 import kotlinx.datetime.*
 import org.litote.kmongo.*
 
@@ -28,7 +28,7 @@ object BattleLeaderboard : BotCommand {
         var valid = true
         var size = 5
         var page = 1
-        val today = mCE.message.id.toDate()
+        val today = mCE.message.id.timestamp.toOwODate()
         var startDate = epoch
         var endDate = today
         var titleToUse = ""
@@ -148,13 +148,22 @@ object BattleLeaderboard : BotCommand {
         }
         if (valid) {
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-            val battleCol = db.getCollection<UserBattleCount>(UserBattleCount.DB_NAME)
+            val battleCol = db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
 
             size = size.coerceAtLeast(3).coerceAtMost(25)
             page = page.coerceAtLeast(1).coerceAtMost(500 / size)
             val offset = (page - 1) * size
 
-            val result = getLeaderboardBattlesInRange(battleCol, mCE.guildId!!, startDate, endDate, offset, size)
+            val result =
+                getLeaderboardStatInRange(
+                    battleCol,
+                    mCE.guildId!!,
+                    startDate,
+                    endDate,
+                    offset,
+                    size,
+                    UserDailyStats::battleCount,
+                )
 
             val filters = List(result.size) {
                 LXVUser::_id eq result[it]._id

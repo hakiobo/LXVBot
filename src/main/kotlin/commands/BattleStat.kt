@@ -3,15 +3,15 @@ package commands
 import LXVBot
 import LXVBot.Companion.BOT_PREFIX
 import LXVBot.Companion.getUserIdFromString
-import LXVBot.Companion.toDate
+import LXVBot.Companion.toOwODate
 import commands.util.*
 import kotlinx.datetime.*
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
-import entities.UserBattleCount
-import entities.UserBattleCount.Companion.epoch
-import entities.UserBattleCount.Companion.getBattlesInRange
+import entities.UserDailyStats
+import entities.UserDailyStats.Companion.epoch
+import entities.UserDailyStats.Companion.getOwOStatInRange
 import kotlinx.datetime.DateTimeUnit
 
 
@@ -60,24 +60,67 @@ object BattleStat : BotCommand {
 
     private suspend fun LXVBot.displayBattleStats(mCE: MessageCreateEvent, userId: Snowflake) {
         val guildId = mCE.guildId!!
-        val todayDate = mCE.message.id.toDate()
-        val col = db.getCollection<UserBattleCount>(UserBattleCount.DB_NAME)
-        val today = getBattlesInRange(col, userId, guildId, todayDate, todayDate)
+        val todayDate = mCE.message.id.timestamp.toOwODate()
+        val col = db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
+        val today = getOwOStatInRange(col, userId, guildId, todayDate, todayDate, UserDailyStats::battleCount)
 
-        val thisWeek = getBattlesInRange(col, userId, guildId, todayDate.startOfWeek(), todayDate.endOfWeek())
-        val thisMonth = getBattlesInRange(col, userId, guildId, todayDate.startOfMonth(), todayDate.endOfMonth())
-        val thisYear = getBattlesInRange(col, userId, guildId, todayDate.startOfYear(), todayDate.endOfYear())
-        val yesterday = getBattlesInRange(
+        val thisWeek = getOwOStatInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.startOfWeek(),
+            todayDate.endOfWeek(),
+            UserDailyStats::battleCount
+        )
+        val thisMonth = getOwOStatInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.startOfMonth(),
+            todayDate.endOfMonth(),
+            UserDailyStats::battleCount
+        )
+        val thisYear = getOwOStatInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.startOfYear(),
+            todayDate.endOfYear(),
+            UserDailyStats::battleCount
+        )
+        val yesterday = getOwOStatInRange(
             col,
             userId,
             guildId,
             todayDate.minus(DateTimeUnit.DAY),
-            todayDate.minus(DateTimeUnit.DAY)
+            todayDate.minus(DateTimeUnit.DAY),
+            UserDailyStats::battleCount
         )
-        val lastWeek = getBattlesInRange(col, userId, guildId, todayDate.startOfWeek(1), todayDate.endOfWeek(1))
-        val lastMonth = getBattlesInRange(col, userId, guildId, todayDate.startOfMonth(1), todayDate.endOfMonth(1))
-        val lastYear = getBattlesInRange(col, userId, guildId, todayDate.startOfYear(1), todayDate.endOfYear(1))
-        val total = getBattlesInRange(col, userId, guildId, epoch, todayDate)
+        val lastWeek = getOwOStatInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.startOfWeek(1),
+            todayDate.endOfWeek(1),
+            UserDailyStats::battleCount
+        )
+        val lastMonth = getOwOStatInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.startOfMonth(1),
+            todayDate.endOfMonth(1),
+            UserDailyStats::battleCount
+        )
+        val lastYear = getOwOStatInRange(
+            col,
+            userId,
+            guildId,
+            todayDate.startOfYear(1),
+            todayDate.endOfYear(1),
+            UserDailyStats::battleCount
+        )
+        val total = getOwOStatInRange(col, userId, guildId, epoch, todayDate, UserDailyStats::battleCount)
 
 
         val username = getUserFromDB(userId).username!!

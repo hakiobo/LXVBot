@@ -17,13 +17,15 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.allowedMentions
 import dev.kord.rest.builder.message.create.embed
 import entities.LXVUser
+import entities.concurrency.LockedMap
 import entities.StoredReminder
-import entities.UserBattleCount.Companion.countBattle
+import entities.UserDailyStats
+import entities.UserDailyStats.Companion.countBattle
+import entities.UserDailyStats.Companion.handleOwOSaid
+import entities.concurrency.LockedData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
 import moderation.PicBan
 import moderation.customs.*
 import moderation.handleMee6LevelUpMessage
@@ -38,12 +40,15 @@ import taco.TacoCommand
 import taco.TacoCommand.handleTacoCommand
 import taco.TacoReminderType
 import java.util.regex.Pattern
+import kotlin.math.max
 
 
 class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
     val db = mongoCon.getDatabase(LXV_DB_NAME)
     val hakiDb = mongoCon.getDatabase(HAKI_DB_NAME)
+    val lastOwOMessage = LockedData(Clock.System.now().toEpochMilliseconds())
+    val owoTimestamps = LockedMap<Snowflake, Long>()
 
     val commands = listOf(
         RPGCommand,
@@ -67,7 +72,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         RemoveRole,
         RoleColor,
         RoleName,
-        )
+    )
 
     suspend fun startup() {
         client.on<ReadyEvent> {
@@ -124,14 +129,18 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         }
 
         client.on<MessageCreateEvent> {
-            client.launch {
-                handleMessage(this@on)
-            }
+//            client.launch {
+            handleMessage(this)
+//            }
         }
     }
 
 
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
+        if (mCE.guildId == null) {
+            sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
+            return
+        }
         if (mCE.message.author?.id == MEE6_ID && mCE.message.channelId == LEVEL_UP_CHANNEL_ID) {
             handleMee6LevelUpMessage(mCE)
         }
@@ -139,19 +148,44 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             handleRPGMessage(mCE)
         }
         if (mCE.message.author?.id == OWO_ID || mCE.message.webhookId == OWO_ID) {
+            lastOwOMessage.adjustData { prevRecent ->
+                max(prevRecent, mCE.message.id.timestamp.toEpochMilliseconds())
+            }
             handleOwOMessage(mCE)
         }
         if (mCE.message.author?.isBot == true) return
+        // owo counting is like highest priority i guess
+        val maybeCountOwO = mCE.message.content.contains("owo", true) || mCE.message.content.contains("uwu", true)
+        if (mCE.message.content.startsWith(GLOBAL_OWO_PREFIX, ignoreCase = true)) {
+            handleOWOCommand(
+                mCE,
+                mCE.message.content.drop(GLOBAL_OWO_PREFIX.length).trim(),
+                maybeCountOwO,
+            )
+        } else if (mCE.message.content.startsWith(LXV_OWO_PREFIX, ignoreCase = true)) {
+            handleOWOCommand(
+                mCE,
+                mCE.message.content.drop(LXV_OWO_PREFIX.length).trim(),
+                maybeCountOwO,
+            )
+        } else if (maybeCountOwO) {
+            try {
+                handleOwOSaid(mCE.message.id.timestamp, mCE.message.author!!, mCE.guildId!!)
+            } catch (npe: NullPointerException) {
+                println(mCE)
+            }
+        }
+
+
+
+
         if (mCE.message.channelId == VERIFY_CHANNEL_ID && mCE.message.content.lowercase() == "owo") {
             val roles = mCE.member!!.roleIds
             if (OWO_ACCESS_ROLE_ID !in roles && OWO_VERIFY_ROLE_ID !in roles) {
                 mCE.member!!.addRole(OWO_VERIFY_ROLE_ID, "They said owo in #verify")
             }
         }
-        if (mCE.guildId == null) {
-            sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
-            return
-        }
+
         if (mCE.message.content.startsWith("$RPG_PREFIX ", true)) {
             handleRPGCommand(mCE)
         }
@@ -163,11 +197,22 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
             handleCommand(mCE, mCE.message.content.drop(BOT_PREFIX.length).trim())
         }
-
-
         if (mCE.message.mentionedUserIds.contains(client.selfId)) {
             reply(mCE.message, "Hi, Welcome to LXV!\n$BOT_NAME prefix is $BOT_PREFIX")
         }
+
+
+    }
+
+    private suspend fun handleOWOCommand(mCE: MessageCreateEvent, msg: String, hasOwO: Boolean) {
+
+        when (val cmd = msg.split(Pattern.compile("\\s")).firstOrNull()) {
+            "points" -> handleOwOSaid(mCE.message.id.timestamp, mCE.message.author!!, mCE.guildId!!)
+            in UserDailyStats.owoCommands -> {}
+            else -> if (hasOwO) handleOwOSaid(mCE.message.id.timestamp, mCE.message.author!!, mCE.guildId!!)
+        }
+
+
     }
 
     private suspend fun handleCommand(mCE: MessageCreateEvent, msg: String) {
@@ -188,7 +233,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                 if (fields.all { it.value.startsWith("L.") } || fields.all { it.value.startsWith("Lvl.") }) {
                     if (desc?.startsWith("Bet amount: ") != true && desc?.endsWith("\n`owo db` to decline the battle!") != true) {
                         if (authorText?.endsWith("'s pets") != true) {
-                            countBattle(mCE.message.id, Snowflake(id), mCE.guildId!!)
+                            countBattle(mCE.message.id.timestamp, Snowflake(id), mCE.guildId!!)
                         }
                     }
                 }
@@ -324,6 +369,8 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val BOT_PREFIX = System.getenv("lxv-prefix")!!
         const val RPG_PREFIX = "rpg"
         const val TACO_SHACK_PREFIX = "ts"
+        const val LXV_OWO_PREFIX = "h"
+        const val GLOBAL_OWO_PREFIX = "owo"
         val LXV_DB_NAME = System.getenv("lxv-db-name")!!
         val HAKI_DB_NAME = System.getenv("haki-db-name")!!
 
@@ -399,7 +446,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
 
         fun getCheckmarkOrCross(checkmark: Boolean): String = if (checkmark) CHECKMARK_EMOJI else CROSSMARK_EMOJI
 
-        fun Snowflake.toDate(): LocalDate = timestamp.toLocalDateTime(PST).date
+        fun Instant.toOwODate(): LocalDate = toLocalDateTime(PST).date
     }
 
 }
