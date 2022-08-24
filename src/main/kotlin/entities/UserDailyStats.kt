@@ -34,8 +34,10 @@ data class UserDailyStats(
     companion object {
         val epoch = LocalDate(2000, Month.JANUARY, 1)
         const val DB_NAME = "owo-stats"
-        const val OWO_CD_MS = 10_000
-        const val OWO_OFFLINE_LIMIT = 300_000
+        private const val OWO_CD_MS = 10_000
+        private const val OWO_PENALTY_MS = 8_000L
+        private const val OWO_MAX_PENALTY_MS = 600_000L
+        private const val OWO_OFFLINE_LIMIT = 300_000
 
         suspend fun LXVBot.countBattle(
             timestamp: Instant,
@@ -89,11 +91,13 @@ data class UserDailyStats(
                 data.adjustData { lastTime ->
                     if (curTime - lastTime >= OWO_CD_MS) {
                         toCount = true
-                        userCol.updateOneById(user.id, setValue(LXVUser::owo / OwOData::lastOwO, curTime))
+                        userCol.updateOneById(user.id, inc(LXVUser::owo / OwOData::lastOwO, curTime - lastTime))
                         curTime
+                    } else if (lastTime - curTime < OWO_MAX_PENALTY_MS) {
+                        userCol.updateOneById(user.id, inc(LXVUser::owo / OwOData::lastOwO, OWO_PENALTY_MS))
+                        lastTime + OWO_PENALTY_MS
                     } else {
                         lastTime
-                        // edit here if we want penalty time
                     }
                 }
                 if (toCount) countOwO(timestamp, user.id, guildId)
