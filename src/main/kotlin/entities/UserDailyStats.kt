@@ -49,7 +49,7 @@ data class UserDailyStats(
                     guildId,
                     timestamp.toOwODate().getDayId()
                 ),
-                combine(inc(UserDailyStats::owoCount, 0L), inc(UserDailyStats::battleCount, 1L)),
+                inc(UserDailyStats::battleCount, 1L),
                 UpdateOptions().upsert(true)
             )
         }
@@ -66,7 +66,7 @@ data class UserDailyStats(
                     guildId,
                     timestamp.toOwODate().getDayId()
                 ),
-                combine(inc(UserDailyStats::owoCount, 1L), inc(UserDailyStats::battleCount, 0L)),
+                combine(inc(UserDailyStats::owoCount, 1L)),
                 UpdateOptions().upsert(true)
             )
 
@@ -101,7 +101,7 @@ data class UserDailyStats(
         }
 
 
-        suspend fun getOwOStatInRange(
+        suspend fun getStatInRange(
             col: CoroutineCollection<UserDailyStats>,
             user: Snowflake,
             guild: Snowflake,
@@ -115,11 +115,9 @@ data class UserDailyStats(
                     UserDailyStats::_id / UserGuildDate::guild eq guild,
                     UserDailyStats::_id / UserGuildDate::dayId lte endDate.getDayId(),
                     UserDailyStats::_id / UserGuildDate::dayId gte startDate.getDayId(),
+                    stat gt 0L
                 ),
-
                 group(null, CountContainer::statCount sum stat),
-//                project(toBson("{\"statCount\": { \$toLong : \"\$statCount\" }}"))
-
             ).first()?.statCount ?: 0L
         }
 
