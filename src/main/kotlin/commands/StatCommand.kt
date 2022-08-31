@@ -8,6 +8,7 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.message.MessageCreateEvent
 import entities.UserDailyStats
 import kotlinx.coroutines.async
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
 import kotlin.reflect.KProperty1
 
@@ -31,6 +32,16 @@ interface StatCommand : BotCommand {
                 statType,
             )
         }
+        val yesterdayResult = client.async {
+            UserDailyStats.getStatInRange(
+                col,
+                userId,
+                guildId,
+                todayDate.minus(DateTimeUnit.DAY),
+                todayDate.minus(DateTimeUnit.DAY),
+                statType,
+            )
+        }
 
         val thisWeekResult = client.async {
             UserDailyStats.getStatInRange(
@@ -38,7 +49,7 @@ interface StatCommand : BotCommand {
                 userId,
                 guildId,
                 todayDate.startOfWeek(),
-                todayDate.endOfWeek(),
+                todayDate.minus(DateTimeUnit.DAY),
                 statType,
             )
         }
@@ -48,7 +59,7 @@ interface StatCommand : BotCommand {
                 userId,
                 guildId,
                 todayDate.startOfMonth(),
-                todayDate.endOfMonth(),
+                todayDate.minus(DateTimeUnit.DAY),
                 statType,
             )
         }
@@ -58,20 +69,11 @@ interface StatCommand : BotCommand {
                 userId,
                 guildId,
                 todayDate.startOfYear(),
-                todayDate.endOfYear(),
+                todayDate.endOfMonth(1),
                 statType,
             )
         }
-        val yesterdayResult = client.async {
-            UserDailyStats.getStatInRange(
-                col,
-                userId,
-                guildId,
-                todayDate.minus(kotlinx.datetime.DateTimeUnit.DAY),
-                todayDate.minus(kotlinx.datetime.DateTimeUnit.DAY),
-                statType,
-            )
-        }
+
         val lastWeekResult = client.async {
             UserDailyStats.getStatInRange(
                 col,
@@ -108,7 +110,7 @@ interface StatCommand : BotCommand {
                 userId,
                 guildId,
                 UserDailyStats.epoch,
-                todayDate,
+                todayDate.endOfYear(2),
                 statType,
             )
         }
@@ -118,14 +120,14 @@ interface StatCommand : BotCommand {
         val avatarResult = client.async { client.getUser(userId)?.avatar?.url }
 
         val today = todayResult.await()
-        val thisWeek = thisWeekResult.await()
-        val thisMonth = thisMonthResult.await()
-        val thisYear = thisYearResult.await()
+        val thisWeek = thisWeekResult.await() + today
+        val thisMonth = thisMonthResult.await() + today
+        val thisYear = thisYearResult.await() + thisMonth
         val yesterday = yesterdayResult.await()
         val lastWeek = lastWeekResult.await()
         val lastMonth = lastMonthResult.await()
         val lastYear = lastYearResult.await()
-        val total = totalResult.await()
+        val total = totalResult.await() + lastYear + thisYear
 
         val username = usernameResult.await()
         val guildName = guildNameResult.await()

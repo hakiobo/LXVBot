@@ -27,6 +27,9 @@ interface BotCommand {
         return false
     }
 
+    /**
+     * Returns true and replies with the given message if the user does not have admin permission in the server
+     */
     suspend fun LXVBot.requireAdmin(mCE: MessageCreateEvent, msg: String = "Admins only smh"): Boolean {
         if (Permission.Administrator !in mCE.member!!.getPermissions()) {
             reply(mCE.message, msg)

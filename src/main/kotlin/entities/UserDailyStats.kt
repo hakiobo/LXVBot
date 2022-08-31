@@ -30,6 +30,7 @@ data class UserDailyStats(
     val _id: UserGuildDate,
     val battleCount: Long = 0L,
     val owoCount: Long = 0L,
+    val owoInvalid: Boolean = false,
 ) {
     companion object {
         val epoch = LocalDate(2000, Month.JANUARY, 1)
@@ -116,10 +117,11 @@ data class UserDailyStats(
             return col.aggregate<CountContainer>(
                 match(
                     UserDailyStats::_id / UserGuildDate::user eq user,
-                    UserDailyStats::_id / UserGuildDate::guild eq guild,
                     UserDailyStats::_id / UserGuildDate::dayId lte endDate.getDayId(),
                     UserDailyStats::_id / UserGuildDate::dayId gte startDate.getDayId(),
-                    stat gt 0L
+                    UserDailyStats::_id / UserGuildDate::guild eq guild,
+                    UserDailyStats::owoInvalid ne true,
+                    stat gt 0L,
                 ),
                 group(null, CountContainer::statCount sum stat),
             ).first()?.statCount ?: 0L
@@ -145,7 +147,8 @@ data class UserDailyStats(
                     UserDailyStats::_id / UserGuildDate::guild eq guild,
                     UserDailyStats::_id / UserGuildDate::dayId lte endDate.getDayId(),
                     UserDailyStats::_id / UserGuildDate::dayId gte startDate.getDayId(),
-                ),
+                    UserDailyStats::owoInvalid ne true,
+                    ),
                 group(
                     UserDailyStats::_id / UserGuildDate::user,
                     TopContainer::sum sum stat

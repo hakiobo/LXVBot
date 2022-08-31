@@ -1,4 +1,5 @@
 import commands.*
+import commands.ServersCommand.requireAdmin
 import rpg.RPGCommand
 import commands.meta.HelpCommand
 import commands.util.BotCommand
@@ -9,9 +10,11 @@ import dev.kord.core.behavior.MessageBehavior
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.User
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.core.event.message.ReactionAddEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.allowedMentions
@@ -33,6 +36,9 @@ import org.litote.kmongo.coroutine.CoroutineClient
 import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
+import owo.commands.DeleteOwOCount
+import owo.commands.DeleteOwOCount.cancelDeletion
+import owo.commands.DeleteOwOCount.confirmDeletion
 import rpg.RPGCommand.handleRPGCommand
 import rpg.RPGCommand.handleRPGMessage
 import rpg.RPGReminderType
@@ -51,6 +57,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     val owoTimestamps = LockedMap<Snowflake, Long>()
 
     val commands = listOf(
+        DeleteOwOCount,
         RPGCommand,
         Github,
         HelpCommand,
@@ -77,7 +84,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     suspend fun startup() {
         client.on<ReadyEvent> {
             val p = client.rest.channel.createMessage(LXV_BOT_UPDATE_CHANNEL_ID) {
-                content = "LXV Bot is online"
+                content = "$BOT_NAME is online"
             }
             val curTime = p.id.timestamp.toEpochMilliseconds()
             val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
@@ -127,7 +134,27 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                 }
             }
         }
-
+        client.on<ReactionAddEvent> {
+            if (emoji in listOf(
+                    ReactionEmoji.Unicode(CHECKMARK_EMOJI),
+                    ReactionEmoji.Unicode(CROSSMARK_EMOJI)
+                )
+            ) {
+                val msg = getMessage()
+                if (msg.author?.id == client.selfId) {
+                    val embed = msg.embeds.firstOrNull()
+                    if (embed?.author?.name == userId.toString() && getUserIdFromString(embed.footer!!.text) != null
+                        && embed.color?.rgb == 0x0000FF
+                    ) {
+                        if (emoji == ReactionEmoji.Unicode(CHECKMARK_EMOJI)) {
+                            confirmDeletion(msg, guildId!!)
+                        } else {
+                            cancelDeletion(msg)
+                        }
+                    }
+                }
+            }
+        }
         client.on<MessageCreateEvent> {
 //            client.launch {
             handleMessage(this)
@@ -365,7 +392,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     }
 
     companion object {
-        const val BOT_NAME = "LXV Bot"
+        val BOT_NAME = System.getenv("lxv-bot-name")!!
         val BOT_PREFIX = System.getenv("lxv-prefix")!!
         const val RPG_PREFIX = "rpg"
         const val TACO_SHACK_PREFIX = "ts"

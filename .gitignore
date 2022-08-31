@@ -3,3 +3,4 @@
 build/
 log.txt
 src/main/kotlin/CountTransfer.kt
+src/main/kotlin/UserGuildOwOCount.kt
