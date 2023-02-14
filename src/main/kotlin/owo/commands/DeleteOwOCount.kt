@@ -36,7 +36,7 @@ object DeleteOwOCount : BotCommand {
         )
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
-        if (requireAdmin(mCE)) return
+        if (requireMod(mCE)) return
         if (args.size == 1) {
             val id = getUserIdFromString(args.first())
             if (id != null) {
@@ -88,9 +88,9 @@ object DeleteOwOCount : BotCommand {
         }
     }
 
-    suspend fun LXVBot.confirmDeletion(msg: Message, guildId: Snowflake) {
+    suspend fun confirmDeletion(bot: LXVBot, msg: Message, guildId: Snowflake) {
         val userToDelete = Snowflake(msg.embeds[0].footer!!.text)
-        val statCol = db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
+        val statCol = bot.db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
         val result = statCol.updateMany(
             and(
                 UserDailyStats::_id / UserGuildDate::user eq userToDelete,
@@ -99,7 +99,7 @@ object DeleteOwOCount : BotCommand {
             setValue(UserDailyStats::owoInvalid, true),
         )
         if (result.modifiedCount != 0L) {
-            sendMessage(msg.channel) {
+            bot.sendMessage(msg.channel) {
                 description = "Succesfully reset <@$userToDelete>'s OwO Stats!"
             }
             msg.edit {
@@ -108,13 +108,13 @@ object DeleteOwOCount : BotCommand {
                     color = Color(0x00FF00)
                 }
             }
-            log {
+            bot.log {
                 title = "OwO Stats reset"
                 description = "<@$userToDelete>'s OwO Stats deleted by <@${msg.embeds.first().author?.name}>"
                 color = Color(0xFFFF00)
             }
         } else {
-            sendMessage(msg.channel, "Failed to reset their owos", 5000)
+            bot.sendMessage(msg.channel, "Failed to reset their owos", 5000)
             msg.edit {
                 embed {
                     msg.embeds[0].apply(this)
@@ -125,7 +125,7 @@ object DeleteOwOCount : BotCommand {
 
     }
 
-    suspend fun LXVBot.cancelDeletion(msg: Message) {
+    suspend fun cancelDeletion(bot: LXVBot, msg: Message) {
         msg.edit {
             embed {
                 msg.embeds[0].apply(this)

@@ -38,5 +38,13 @@ interface BotCommand {
         return false
     }
 
+    suspend fun LXVBot.requireMod(mCE: MessageCreateEvent, msg: String = "Mods only smh"): Boolean {
+        if (Permission.Administrator !in mCE.member!!.getPermissions() && LXVBot.MOD_ROLE_ID !in mCE.member!!.roleIds) {
+            reply(mCE.message, msg)
+            return true
+        }
+        return false
+    }
+
     suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>)
 }

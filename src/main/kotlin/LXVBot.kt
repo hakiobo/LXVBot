@@ -1,8 +1,8 @@
 import commands.*
-import commands.ServersCommand.requireAdmin
 import rpg.RPGCommand
 import commands.meta.HelpCommand
 import commands.util.BotCommand
+import dev.kord.common.Color
 import dev.kord.common.entity.AllowedMentionType
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -29,6 +29,7 @@ import entities.concurrency.LockedData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
+import kotlinx.datetime.TimeZone
 import moderation.PicBan
 import moderation.customs.*
 import moderation.handleMee6LevelUpMessage
@@ -37,14 +38,14 @@ import org.litote.kmongo.coroutine.CoroutineCollection
 import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import owo.commands.DeleteOwOCount
-import owo.commands.DeleteOwOCount.cancelDeletion
-import owo.commands.DeleteOwOCount.confirmDeletion
+import owo.commands.RecruitCmd
 import rpg.RPGCommand.handleRPGCommand
 import rpg.RPGCommand.handleRPGMessage
 import rpg.RPGReminderType
 import taco.TacoCommand
 import taco.TacoCommand.handleTacoCommand
 import taco.TacoReminderType
+import java.util.*
 import java.util.regex.Pattern
 import kotlin.math.max
 
@@ -55,6 +56,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     val hakiDb = mongoCon.getDatabase(HAKI_DB_NAME)
     val lastOwOMessage = LockedData(Clock.System.now().toEpochMilliseconds())
     val owoTimestamps = LockedMap<Snowflake, Long>()
+    private var started = false
 
     val commands = listOf(
         DeleteOwOCount,
@@ -79,6 +81,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         RemoveRole,
         RoleColor,
         RoleName,
+        RecruitCmd,
     )
 
     suspend fun startup() {
@@ -89,48 +92,57 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             val curTime = p.id.timestamp.toEpochMilliseconds()
             val reminderCol = db.getCollection<StoredReminder>(StoredReminder.DB_NAME)
             val userCol = db.getCollection<LXVUser>(LXVUser.DB_NAME)
-            val reminders = reminderCol.find().toList()
-            reminders.forEach {
-                client.launch {
-                    val msgTime = it.srcMsg.timestamp.toEpochMilliseconds()
-                    if (curTime < it.reminderTime) {
-                        delay(it.reminderTime - curTime)
-                    }
-                    val check = getUserFromDB(
-                        it.otherData, null, userCol
-                    )
-                    when (it.category) {
-                        "rpg" -> {
-                            val reminderSetting = check.rpg.rpgReminders[it.type]
-                            val reminder = RPGReminderType.findReminder(it.type)
-                            if (reminderSetting == null || reminder == null) {
-                                println("wtf should not be null")
-                            } else {
-                                if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
-                                    client.rest.channel.createMessage(it.channelId) {
-                                        messageReference = it.srcMsg
-                                        content = reminder.getReminderMessage(it.oldMsg.split(" "))
+            if (!started) {
+                started = true
+                val reminders = reminderCol.find().toList()
+
+                reminders.forEach {
+                    client.launch {
+                        val msgTime = it.srcMsg.timestamp.toEpochMilliseconds()
+                        if (curTime < it.reminderTime) {
+                            delay(it.reminderTime - curTime)
+                        }
+                        val check = getUserFromDB(
+                            it.otherData, null, userCol
+                        )
+                        when (it.category) {
+                            "rpg" -> {
+                                val reminderSetting = check.rpg.rpgReminders[it.type]
+                                val reminder = RPGReminderType.findReminder(it.type)
+                                if (reminderSetting == null || reminder == null) {
+                                    println("wtf should not be null")
+                                } else {
+                                    if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
+                                        client.rest.channel.createMessage(it.channelId) {
+                                            messageReference = it.srcMsg
+                                            content = reminder.getReminderMessage(it.oldMsg.split(" "))
+                                        }
+                                    }
+                                }
+
+                            }
+
+                            "tacoshack" -> {
+                                val reminder = TacoReminderType.findTacoReminder(it.type)
+                                if (reminder == null) {
+                                    println("wtf should not be null")
+                                } else {
+                                    val reminderSetting = reminder.prop.get(check.taco.tacoReminders)
+                                    if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
+                                        client.rest.channel.createMessage(it.channelId) {
+                                            messageReference = it.srcMsg
+                                            content = reminder.getReminderMessage()
+                                        }
                                     }
                                 }
                             }
 
-                        }
-                        "tacoshack" -> {
-                            val reminder = TacoReminderType.findTacoReminder(it.type)
-                            if (reminder == null) {
-                                println("wtf should not be null")
-                            } else {
-                                val reminderSetting = reminder.prop.get(check.taco.tacoReminders)
-                                if (msgTime == reminderSetting.lastUse && reminderSetting.enabled) {
-                                    client.rest.channel.createMessage(it.channelId) {
-                                        messageReference = it.srcMsg
-                                        content = reminder.getReminderMessage()
-                                    }
-                                }
+                            "recruitment" -> {
+                                RecruitCmd.handleExpirationReminder(this@LXVBot, it)
                             }
                         }
+                        reminderCol.deleteOne(StoredReminder::srcMsg eq it.srcMsg)
                     }
-                    reminderCol.deleteOne(StoredReminder::srcMsg eq it.srcMsg)
                 }
             }
         }
@@ -147,23 +159,22 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                         && embed.color?.rgb == 0x0000FF
                     ) {
                         if (emoji == ReactionEmoji.Unicode(CHECKMARK_EMOJI)) {
-                            confirmDeletion(msg, guildId!!)
+                            DeleteOwOCount.confirmDeletion(this@LXVBot, msg, guildId!!)
                         } else {
-                            cancelDeletion(msg)
+                            DeleteOwOCount.cancelDeletion(this@LXVBot, msg)
                         }
                     }
                 }
             }
         }
         client.on<MessageCreateEvent> {
-//            client.launch {
             handleMessage(this)
-//            }
         }
     }
 
 
     private suspend fun handleMessage(mCE: MessageCreateEvent) {
+        if (mCE.message.author?.id == client.selfId) return
         if (mCE.guildId == null) {
             sendMessage(mCE.message.channel, "I don't do DMs, sorry <:pualOwO:782542201837322292>")
             return
@@ -199,10 +210,10 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
             try {
                 handleOwOSaid(mCE.message.id.timestamp, mCE.message.author!!, mCE.guildId!!)
             } catch (npe: NullPointerException) {
+                // there's some issue here that occurs when the message gets deleted relatively quicky (e.g. nqn emojis) not sure exactly what comes up null and where though
                 println(mCE)
             }
         }
-
 
 
 
@@ -226,6 +237,30 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         }
         if (mCE.message.mentionedUserIds.contains(client.selfId)) {
             reply(mCE.message, "Hi, Welcome to LXV!\n$BOT_NAME prefix is $BOT_PREFIX")
+        }
+
+
+    }
+
+    private suspend fun handleDM(mCE: MessageCreateEvent) {
+        if (mCE.message.content.takeLast(4).lowercase(Locale.getDefault()) == "when") {
+            sendMessage(mCE.message.channel, "when", 10_000)
+            return
+        }
+
+        client.rest.channel.createMessage(DM_CHANNEL_ID) {
+            content = "$BOT_NAME is online"
+
+            embed {
+                title = mCE.message.author?.tag ?: "no author"
+
+                description = mCE.message.content
+                if (mCE.message.author != null) {
+                    footer {
+                        text = mCE.message.author!!.id.toString()
+                    }
+                }
+            }
         }
 
 
@@ -394,6 +429,14 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
     companion object {
         val BOT_NAME = System.getenv("lxv-bot-name")!!
         val BOT_PREFIX = System.getenv("lxv-prefix")!!
+
+        val LXV_PINK = Color(0xffd1dc)
+        val LXV_MAGENTA = Color(0xE30F76)
+        val LXV_MINT = Color(0xA2D6BF)
+        val LXV_DARK_TEAL = Color(0x3F95A2)
+        val LXV_TEAL = Color(0x5BBFBD)
+
+
         const val RPG_PREFIX = "rpg"
         const val TACO_SHACK_PREFIX = "ts"
         const val LXV_OWO_PREFIX = "h"
@@ -413,6 +456,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val LXV_BOT_UPDATE_CHANNEL_ID = Snowflake(816768818088116225)
         val VERIFY_CHANNEL_ID = Snowflake(841698006800793620)
         val LOG_CHANNEL_ID = Snowflake(991966009441406976)
+        val DM_CHANNEL_ID = Snowflake(1054655140159819837)
 
         // guild ids
         val LXV_GUILD_ID = Snowflake(714152739252338749)
@@ -421,10 +465,26 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val OWO_VERIFY_ROLE_ID = Snowflake(841696472461344858)
         val OWO_ACCESS_ROLE_ID = Snowflake(714173846873309224)
         val RPG_PING_ROLE_ID = Snowflake(795936961344831549)
+        val ADMIN_ROLE_ID = Snowflake(714165560853790741)
+        val MOD_ROLE_ID = Snowflake(714197482699227265)
+        val LXV_MEMBER_ROLE_ID = Snowflake(767034360640700427)
+        val LXV_RECRUIT_ROLE_ID = Snowflake(769135734086959104)
+        val RECUIT_BAN_ROLE_ID = Snowflake(991975489801551932)
 
 
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
+
+        val ARROW_EMOJI = ReactionEmoji.Custom(Snowflake(884151797848113152), "arrow", true)
+        val NEW_LXV_GIF_EMOJI = ReactionEmoji.Custom(Snowflake(1052139469798637659), "newlxvgif", true)
+        val LXV_HEDGE_EMOJI = ReactionEmoji.Custom(Snowflake(822377757958340640), "LXVhedgeily", false)
+        val LXV_HEDGE_PEAK_EMOJI = ReactionEmoji.Custom(Snowflake(822030768981016577), "LXVhedgepeek", false)
+        val LXV_HEDGE_SIGH_EMOJI = ReactionEmoji.Custom(Snowflake(846997428699136060), "hedgesigh", false)
+        val LXV_HEART_EMOJI = ReactionEmoji.Custom(Snowflake(821431844276666389), "LXVheart", false)
+        val LXV_PEEK_EMOJI = ReactionEmoji.Custom(Snowflake(822006949834260511), "LXVpeek", false)
+        val LXV_CRY_EMOJI = ReactionEmoji.Custom(Snowflake(822339762484281366), "LXVcry", false)
+        val LXV_SQUISH_EMOJI = ReactionEmoji.Custom(Snowflake(821623141972312074), "LXVsquish", false)
+
 
         val PST = TimeZone.of("America/Los_Angeles")
 

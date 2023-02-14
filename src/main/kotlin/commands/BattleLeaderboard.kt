@@ -151,7 +151,7 @@ object BattleLeaderboard : BotCommand {
             val battleCol = db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
 
             size = size.coerceAtLeast(3).coerceAtMost(25)
-            page = page.coerceAtLeast(1).coerceAtMost(500 / size)
+            page = page.coerceAtLeast(1).coerceAtMost(1000 / size)
             val offset = (page - 1) * size
 
             val result =

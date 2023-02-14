@@ -69,7 +69,7 @@ data class UserDailyStats(
                     guildId,
                     timestamp.toOwODate().getDayId()
                 ),
-                combine(inc(UserDailyStats::owoCount, 1L)),
+                inc(UserDailyStats::owoCount, 1L),
                 UpdateOptions().upsert(true)
             )
 
