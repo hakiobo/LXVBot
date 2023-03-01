@@ -39,6 +39,7 @@ import org.litote.kmongo.eq
 import org.litote.kmongo.setValue
 import owo.commands.DeleteOwOCount
 import owo.commands.RecruitCmd
+import owo.commands.CancelRecruit
 import rpg.RPGCommand.handleRPGCommand
 import rpg.RPGCommand.handleRPGMessage
 import rpg.RPGReminderType
@@ -82,6 +83,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         RoleColor,
         RoleName,
         RecruitCmd,
+        CancelRecruit,
     )
 
     suspend fun startup() {
@@ -158,11 +160,24 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
                     if (embed?.author?.name == userId.toString() && getUserIdFromString(embed.footer!!.text) != null
                         && embed.color?.rgb == 0x0000FF
                     ) {
-                        if (emoji == ReactionEmoji.Unicode(CHECKMARK_EMOJI)) {
-                            DeleteOwOCount.confirmDeletion(this@LXVBot, msg, guildId!!)
-                        } else {
-                            DeleteOwOCount.cancelDeletion(this@LXVBot, msg)
+                        when (embed.title) {
+                            CancelRecruit.embedTitle -> {
+                                if (emoji == ReactionEmoji.Unicode(CHECKMARK_EMOJI)) {
+                                    CancelRecruit.confirmDeletion(this@LXVBot, msg, guildId!!)
+                                } else {
+                                    CancelRecruit.cancelDeletion(this@LXVBot, msg)
+                                }
+                            }
+
+                            DeleteOwOCount.embedTitle -> {
+                                if (emoji == ReactionEmoji.Unicode(CHECKMARK_EMOJI)) {
+                                    DeleteOwOCount.confirmDeletion(this@LXVBot, msg, guildId!!)
+                                } else {
+                                    DeleteOwOCount.cancelDeletion(this@LXVBot, msg)
+                                }
+                            }
                         }
+
                     }
                 }
             }
@@ -235,7 +250,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         if (mCE.message.content.startsWith(BOT_PREFIX, true)) {
             handleCommand(mCE, mCE.message.content.drop(BOT_PREFIX.length).trim())
         }
-        if (mCE.message.mentionedUserIds.contains(client.selfId)) {
+        if (mCE.message.mentionedUserIds.contains(client.selfId) && mCE.message.content.contains("<@${client.selfId}>")) {
             reply(mCE.message, "Hi, Welcome to LXV!\n$BOT_NAME prefix is $BOT_PREFIX")
         }
 
@@ -430,8 +445,9 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val BOT_NAME = System.getenv("lxv-bot-name")!!
         val BOT_PREFIX = System.getenv("lxv-prefix")!!
 
-        val LXV_PINK = Color(0xffd1dc)
+        val LXV_PINK = Color(0xFFD1DC)
         val LXV_MAGENTA = Color(0xE30F76)
+        val LXV_BRIGHT_TEAL = Color(0x6BFFE8)
         val LXV_MINT = Color(0xA2D6BF)
         val LXV_DARK_TEAL = Color(0x3F95A2)
         val LXV_TEAL = Color(0x5BBFBD)
@@ -475,8 +491,10 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         private const val CHECKMARK_EMOJI = "\u2705"
         private const val CROSSMARK_EMOJI = "\u274c"
 
-        val ARROW_EMOJI = ReactionEmoji.Custom(Snowflake(884151797848113152), "arrow", true)
+        val LXV_NEON_CHVRCHES_EMOJI = ReactionEmoji.Custom(Snowflake(945535196239921192), "lxv", true)
         val NEW_LXV_GIF_EMOJI = ReactionEmoji.Custom(Snowflake(1052139469798637659), "newlxvgif", true)
+        val LXV_HEDGE_WUV_EMOJI = ReactionEmoji.Custom(Snowflake(1080420413630332928), "lxvhedgewuv", false)
+        val LXV_HEDGE_HOLD_EMOJI = ReactionEmoji.Custom(Snowflake(821431807425642567), "LXVhedge", false)
         val LXV_HEDGE_EMOJI = ReactionEmoji.Custom(Snowflake(822377757958340640), "LXVhedgeily", false)
         val LXV_HEDGE_PEAK_EMOJI = ReactionEmoji.Custom(Snowflake(822030768981016577), "LXVhedgepeek", false)
         val LXV_HEDGE_SIGH_EMOJI = ReactionEmoji.Custom(Snowflake(846997428699136060), "hedgesigh", false)
@@ -484,6 +502,7 @@ class LXVBot(val client: Kord, mongoCon: CoroutineClient) {
         val LXV_PEEK_EMOJI = ReactionEmoji.Custom(Snowflake(822006949834260511), "LXVpeek", false)
         val LXV_CRY_EMOJI = ReactionEmoji.Custom(Snowflake(822339762484281366), "LXVcry", false)
         val LXV_SQUISH_EMOJI = ReactionEmoji.Custom(Snowflake(821623141972312074), "LXVsquish", false)
+        val ARROW_EMOJI = ReactionEmoji.Custom(Snowflake(1080394763494232074), "p_arrowright03", false)
 
 
         val PST = TimeZone.of("America/Los_Angeles")

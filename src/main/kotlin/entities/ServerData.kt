@@ -10,4 +10,5 @@ data class ServerData(
     val customRole: Snowflake? = null,
     val picBanned: Boolean = false,
     val recruitData: RecruitData? = null,
+    val memberData: MemberData? = null,
 )

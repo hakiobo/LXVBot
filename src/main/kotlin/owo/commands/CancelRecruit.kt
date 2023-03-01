@@ -2,59 +2,52 @@ package owo.commands
 
 import LXVBot
 import LXVBot.Companion.getUserIdFromString
-import commands.util.*
+import commands.util.BotCommand
+import commands.util.CommandCategory
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.common.entity.optional.value
+import dev.kord.core.behavior.MemberBehavior
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.edit
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.message.modify.embed
-import entities.UserDailyStats
-import entities.UserGuildDate
+import entities.LXVUser
+import entities.ServerData
 import kotlinx.coroutines.delay
-import org.litote.kmongo.*
+import org.litote.kmongo.div
+import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 
-object DeleteOwOCount : BotCommand {
+
+object CancelRecruit : BotCommand {
     override val name: String
-        get() = "resetowo"
-    override val description: String
-        get() = "Resets the owo count for the specified member in this server"
+        get() = "removerecruit"
+
     override val aliases: List<String>
-        get() = listOf("eraseowo", "clearowo", "oworeset")
+        get() = listOf("rr")
+    override val description: String
+        get() = "removes someone's recruit role"
+
     override val category: CommandCategory
         get() = CommandCategory.MODERATION
-    override val usages: List<CommandUsage>
-        get() = listOf(
-            CommandUsage(
-                listOf(Argument(listOf("id", "mention"), ChoiceType.DESCRIPTION)),
-                "Resets the specified user's owo count in the server",
-                AccessType.MOD
-            )
-        )
 
-    const val embedTitle = "Confirm OwO Stats Reset"
+    const val embedTitle = "Confirm Recruitment Cancellation"
 
     override suspend fun LXVBot.cmd(mCE: MessageCreateEvent, args: List<String>) {
         if (requireMod(mCE)) return
         if (args.size == 1) {
             val id = getUserIdFromString(args.first())
             if (id != null) {
-                val entry = db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
-                    .findOne(
-                        and(
-                            UserDailyStats::_id / UserGuildDate::user eq id,
-                            UserDailyStats::_id / UserGuildDate::guild eq mCE.guildId,
-                            UserDailyStats::owoInvalid ne true,
-                        )
-                    )
-                if (entry != null) {
+                val col = db.getCollection<LXVUser>(LXVUser.DB_NAME)
+                val entry = getUserFromDB(id, null, col)
+                if (entry.serverData.recruitData != null) {
                     val msg = mCE.message.channel.createEmbed {
                         title = embedTitle
                         description =
-                            "Are you sure you want to reset the OwO stats for <@$id> in ${mCE.getGuild()!!.name}?"
+                            "Are you sure you want to cancel the LXV Recruitment for <@$id>?"
                         footer {
                             text = id.toString()
                         }
@@ -80,7 +73,7 @@ object DeleteOwOCount : BotCommand {
                         }
                     }
                 } else {
-                    sendMessage(mCE.message.channel, "Could not find any owos for that user")
+                    sendMessage(mCE.message.channel, "Could not find current recruitment for that user")
                 }
             } else {
                 sendMessage(mCE.message.channel, "Invalid User!")
@@ -92,17 +85,30 @@ object DeleteOwOCount : BotCommand {
 
     suspend fun confirmDeletion(bot: LXVBot, msg: Message, guildId: Snowflake) {
         val userToDelete = Snowflake(msg.embeds[0].footer!!.text)
-        val statCol = bot.db.getCollection<UserDailyStats>(UserDailyStats.DB_NAME)
-        val result = statCol.updateMany(
-            and(
-                UserDailyStats::_id / UserGuildDate::user eq userToDelete,
-                UserDailyStats::_id / UserGuildDate::guild eq guildId,
-            ),
-            setValue(UserDailyStats::owoInvalid, true),
+        val userCol = bot.db.getCollection<LXVUser>(LXVUser.DB_NAME)
+        try {
+            MemberBehavior(LXVBot.LXV_GUILD_ID, userToDelete, bot.client).removeRole(
+                LXVBot.LXV_RECRUIT_ROLE_ID,
+                "Recruitment Cancelled by <@${msg.embeds.first().author?.name}>"
+            )
+        } catch (e: Exception) {
+            bot.sendMessage(msg.channel, "Failed to cancel their recruitment", 5000)
+            msg.edit {
+                embed {
+                    msg.embeds[0].apply(this)
+                    color = Color(0xFF0000)
+                }
+            }
+            return
+        }
+        val result = userCol.updateOne(
+            LXVUser::_id eq userToDelete,
+            setValue(LXVUser::serverData / ServerData::recruitData, null),
         )
         if (result.modifiedCount != 0L) {
+
             bot.sendMessage(msg.channel) {
-                description = "Succesfully reset <@$userToDelete>'s OwO Stats!"
+                description = "Succesfully cancelled <@$userToDelete>'s Recruitment!"
             }
             msg.edit {
                 embed {
@@ -111,12 +117,12 @@ object DeleteOwOCount : BotCommand {
                 }
             }
             bot.log {
-                title = "OwO Stats reset"
-                description = "<@$userToDelete>'s OwO Stats deleted by <@${msg.embeds.first().author?.name}>"
+                title = "LXV Recruitment Cancelled"
+                description = "<@$userToDelete>'s recruitment cancelled by <@${msg.embeds.first().author?.name}>"
                 color = Color(0xFFFF00)
             }
         } else {
-            bot.sendMessage(msg.channel, "Failed to reset their owos", 5000)
+            bot.sendMessage(msg.channel, "Failed to cancel their recruitment", 5000)
             msg.edit {
                 embed {
                     msg.embeds[0].apply(this)
@@ -134,5 +140,4 @@ object DeleteOwOCount : BotCommand {
             }
         }
     }
-
 }
